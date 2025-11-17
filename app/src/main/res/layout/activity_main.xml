@@ -32,7 +32,7 @@
                 android:textStyle="bold" />
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/manu_button"
+                android:id="@+id/menu_button"
                 style="@style/Widget.MaterialComponents.Button"
                 android:layout_width="44dp"
                 android:layout_height="55dp"

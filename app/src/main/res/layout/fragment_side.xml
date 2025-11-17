@@ -17,9 +17,10 @@
         android:padding="16dp">
 
         <TextView
+            android:id="@+id/username"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="菜单"
+            android:text="未登录"
             android:textColor="@android:color/white"
             android:textSize="20sp"
             android:textStyle="bold" />
@@ -33,14 +34,14 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <Button
-            android:id="@+id/btn_login"
-            style="@style/Widget.MaterialComponents.Button.TextButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:text="登录"
-            android:textSize="16sp" />
+<!--        <Button-->
+<!--            android:id="@+id/btn_login"-->
+<!--            style="@style/Widget.MaterialComponents.Button.TextButton"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_marginBottom="8dp"-->
+<!--            android:text="登录"-->
+<!--            android:textSize="16sp" />-->
 
         <Button
             android:id="@+id/btn_theme"
@@ -59,6 +60,30 @@
             android:text="详细信息"
             android:textSize="16sp" />
 
+        <Button
+            android:id="@+id/btn_tel"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="打电话"
+            android:textSize="16sp" />
+        <Button
+            android:id="@+id/btn_email"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="发短信"
+            android:textSize="16sp" />
+
+        <Button
+            android:id="@+id/btn_logout"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:text="退出登录"
+            android:textSize="16sp"
+            android:textColor="#FFFF0000"/>
     </LinearLayout>
 
 </LinearLayout>

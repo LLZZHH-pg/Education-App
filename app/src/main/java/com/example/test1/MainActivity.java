@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 
@@ -22,15 +23,17 @@ public class MainActivity extends BaseActivity implements SideFragment.OnSidebar
     private static final String PREFS_NAME = "app_settings";
     private static final String KEY_DARK_MODE = "dark_mode";
     private boolean isSidebarOpen = false;
+    private Button menuButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        View menuButton = findViewById(R.id.manu_button);
-        if (menuButton != null) {
-            menuButton.setOnClickListener(this::showSidebar);
-        }
+        menuButton = findViewById(R.id.menu_button);
+        updateMenuButton(); // 初始化菜单按钮状态
+//        if (menuButton != null) {
+//            menuButton.setOnClickListener(this::showSidebar);
+//        }
         // 设置主内容区域点击监听，点击时关闭侧边栏
         findViewById(R.id.fragment_container).setOnClickListener(v -> {
             if (isSidebarOpen) {
@@ -43,6 +46,29 @@ public class MainActivity extends BaseActivity implements SideFragment.OnSidebar
             findViewById(android.R.id.content).post(this::showPage1);
         }
         setupBottomNavigation();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        updateMenuButton();
+    }
+
+    private void updateMenuButton() {
+        if (menuButton != null) {
+            if (LoginManager.isLoggedIn(this)) {
+                String username = LoginManager.getUsername(this);
+                if (username.length() >= 2) {
+                    menuButton.setText(username.substring(0, 2));
+                } else {
+                    menuButton.setText(username);
+                }
+                menuButton.setOnClickListener(this::showSidebar);
+            } else {
+                menuButton.setText("登录");
+                menuButton.setOnClickListener(v -> LoginManager.navigateToLogin(this));
+            }
+        }
     }
     private void setupBottomNavigation() {
         BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
@@ -106,7 +132,7 @@ public class MainActivity extends BaseActivity implements SideFragment.OnSidebar
 //    private boolean onMenuItemSelected(MenuItem item) {
 //        int id = item.getItemId();
 //        if (id == 1) { // 登录
-//            navigateToLogin();
+//            LoginManager.navigateToLogin(this);
 //            return true;
 //        } else if (id == 2) { // 切换主题色（夜间/日间切换示例）
 //            toggleTheme();
@@ -132,6 +158,12 @@ public class MainActivity extends BaseActivity implements SideFragment.OnSidebar
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         SideFragment sidebarFragment = new SideFragment();
         sidebarFragment.setOnSidebarItemClickListener(this);
+
+        // 传递用户名给SideFragment
+        Bundle args = new Bundle();
+        String username = LoginManager.getUsername(this);
+        args.putString("username", username);
+        sidebarFragment.setArguments(args);
 
         getSupportFragmentManager().beginTransaction()
                 .setCustomAnimations(
@@ -186,10 +218,16 @@ public class MainActivity extends BaseActivity implements SideFragment.OnSidebar
     }
 
     // 侧边栏菜单项点击回调
+//    @Override
+//    public void onLoginClicked() {
+//        closeSidebar();
+//        LoginManager.navigateToLogin(this);
+//    }
     @Override
-    public void onLoginClicked() {
+    public void onLogoutClicked() {
         closeSidebar();
-        navigateToLogin();
+        LoginManager.logout(this);
+        updateMenuButton();
     }
 
     @Override
@@ -233,6 +271,24 @@ public class MainActivity extends BaseActivity implements SideFragment.OnSidebar
                 .setMessage(message)
                 .setPositiveButton("确定", null)
                 .show();
+    }
+
+    @Override
+    public void onTelClicked() {
+        closeSidebar();
+        android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_DIAL,
+                android.net.Uri.parse("tel:+8613587958303"));
+        startActivity(intent);
+    }
+    @Override
+    public void onEmailClicked() {
+        closeSidebar();
+        String phone = "+8613587958303";
+        android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_SENDTO,
+                android.net.Uri.parse("smsto:" + phone));
+        intent.putExtra("sms_body", "hi");
+        startActivity(intent);
+
     }
 
 }

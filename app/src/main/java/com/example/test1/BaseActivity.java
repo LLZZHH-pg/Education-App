@@ -20,14 +20,14 @@ public class BaseActivity extends AppCompatActivity {
     /**
      * 统一的登录跳转方法
      */
-    protected void navigateToLogin() {
-        LoginManager.navigateToLogin(this);
-    }
+//    protected void navigateToLogin() {
+//        LoginManager.navigateToLogin(this);
+//    }
 
     /**
      * 检查登录状态
      */
-    protected boolean isUserLoggedIn() {
-        return LoginManager.isLoggedIn(this);
-    }
+//    protected boolean isUserLoggedIn() {
+//        return LoginManager.isLoggedIn(this);
+//    }
 }

@@ -10,6 +10,7 @@ public class LoginManager {
     private static final String PREFS_NAME = "LoginPrefs";
     private static final String KEY_LAST_ACTIVITY = "last_activity";
     private static final String KEY_IS_LOGGED_IN = "is_logged_in";
+    private static final String KEY_USERNAME = "username";
 
     /**
      * 保存当前Activity信息，然后跳转到登录页
@@ -89,10 +90,37 @@ public class LoginManager {
     }
 
     /**
+     * 设置用户名
+     */
+    public static void setUsername(Context context, String username) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        prefs.edit().putString(KEY_USERNAME, username).apply();
+    }
+
+    /**
+     * 获取用户名
+     */
+    public static String getUsername(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        return prefs.getString(KEY_USERNAME, "");
+    }
+
+    /**
      * 清除保存的Activity信息
      */
     public static void clearLastActivity(Context context) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         prefs.edit().remove(KEY_LAST_ACTIVITY).apply();
+    }
+
+    /**
+     * 退出登录，清除登录状态和用户名
+     */
+    public static void logout(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        prefs.edit()
+                .putBoolean(KEY_IS_LOGGED_IN, false)
+                .putString(KEY_USERNAME, "")
+                .apply();
     }
 }

@@ -112,13 +112,11 @@ public class LoginActivity extends AppCompatActivity {
             } else {
                 String combinedText = "用户名: " + username + "+密码: " + password;
                 Toast.makeText(LoginActivity.this, combinedText, Toast.LENGTH_SHORT).show();
-
                 // 发送登录成功通知
                 sendLoginNotification(username, password, true, "登录成功");
-
                 // 设置登录状态
                 LoginManager.setLoggedIn(this, true);
-
+                LoginManager.setUsername(this, username);
                 // 返回到之前的Activity
                 LoginManager.returnToPreviousActivity(this);
             }
