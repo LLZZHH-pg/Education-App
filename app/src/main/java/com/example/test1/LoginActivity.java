@@ -4,15 +4,18 @@ import android.annotation.SuppressLint;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Intent;
+import android.graphics.Matrix;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
-import android.view.MotionEvent;
+import android.util.DisplayMetrics;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -26,6 +29,44 @@ public class LoginActivity extends AppCompatActivity {
 
     private static final String CHANNEL_ID = "LOGIN_CHANNEL";
     private static final int NOTIFICATION_ID = 1001;
+    // 大图片尺寸
+    private static final int ORIGINAL_IMAGE_WIDTH = 228;
+    private static final int ORIGINAL_IMAGE_HEIGHT = 180;
+    private float startX=0f;
+    private float startY=0f;
+
+    // 可活动区域参数
+    private static final int ACTIVITY_AREA_CENTER_X = 122; // 中心点X相对图片左上角坐标
+    private static final int ACTIVITY_AREA_CENTER_Y = 70;  // 中心点Y相对图片左上角坐标
+    private static final int ACTIVITY_AREA_WIDTH = 30;    // 可活动区域宽度
+    private static final int ACTIVITY_AREA_HEIGHT = 31;  // 可活动区域高度
+    private float activityAreaCenterX;
+    private float activityAreaCenterY;
+
+
+    // 小图片尺寸
+    private static final int SMALL_IMAGE_WIDTH = 56;
+    private static final int SMALL_IMAGE_HEIGHT = 63;
+    private float touchimage2Width=SMALL_IMAGE_WIDTH;
+    private float touchimage2Height=SMALL_IMAGE_HEIGHT;
+
+
+    // 屏幕尺寸
+    private int screenWidth;
+    private int screenHeight;
+    private float screenCenterX;
+    private float screenCenterY;
+
+    // 缩放系数和映射关系
+    private float touchimageScale = 1.0f;
+    private float screenScaleX=1.0f;
+    private float screenScaleY=1.0f;
+
+    // View引用
+    private ImageView touchImage;
+    private ImageView touchImage2;
+    private FrameLayout imageContainer;
+
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -34,33 +75,37 @@ public class LoginActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_login);
 
+        // 初始化View
+        touchImage = findViewById(R.id.touchImage);
+        touchImage2 = findViewById(R.id.touchImage2);
+        imageContainer = findViewById(R.id.imageContainer);
+
         EditText usernameEditText = findViewById(R.id.usernameEditText);
         EditText passwordEditText = findViewById(R.id.passwordEditText);
 
-        ImageView touchImage = findViewById(R.id.touchImage);
-        TextView coordinatesText = findViewById(R.id.coordinatesText);
         View rootView = findViewById(android.R.id.content);
         rootView.setOnTouchListener((v, event) -> {
-            float rawX = event.getRawX();
-            float rawY = event.getRawY();
-
-            // 获取图片在屏幕上的位置
-            int[] imgLoc = new int[2];
-            touchImage.getLocationOnScreen(imgLoc);
-
-            switch (event.getAction()) {
-                case MotionEvent.ACTION_DOWN:
-                case MotionEvent.ACTION_MOVE:
-                    String text = String.format("屏幕坐标: (%.1f, %.1f)", rawX, rawY);
-                    coordinatesText.setText(text);
+            switch (event.getActionMasked()) {
+                case android.view.MotionEvent.ACTION_DOWN:
+                case android.view.MotionEvent.ACTION_MOVE: {
+                    float rawX = event.getRawX();
+                    float rawY = event.getRawY();
+                    updateSmallImagePosition(rawX, rawY);
                     break;
-                case MotionEvent.ACTION_UP:
-                case MotionEvent.ACTION_CANCEL:
-                    touchImage.setAlpha(1.0f);
+                }
+                case android.view.MotionEvent.ACTION_UP:
+                case android.view.MotionEvent.ACTION_CANCEL: {
+                    resetSmallImagePosition();
+                    break;
+                }
+                default:
                     break;
             }
             return true;
         });
+
+        // 计算缩放比例和初始化小图片位置（在布局完成后设置）
+        imageContainer.post(this::initializeSmallImagePosition);
 
         Button registerButton = findViewById(R.id.registerButton);
         registerButton.setOnClickListener(v -> {
@@ -137,6 +182,76 @@ public class LoginActivity extends AppCompatActivity {
         });
 
     }
+
+
+    /**
+     * 初始化小图片位置
+     */
+    private void initializeSmallImagePosition() {
+        // 计算图片缩放比例和映射系数
+        calculateImageScale();
+        // 重置小图片到可活动区域中心
+        resetSmallImagePosition();
+    }
+    /**
+     * 计算图片缩放比例和映射系数
+     */
+    private void calculateImageScale() {
+        // 获取屏幕尺寸
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        screenWidth = displayMetrics.widthPixels;
+        screenHeight = displayMetrics.heightPixels;
+        screenCenterX = screenWidth / 2f;
+        screenCenterY = screenHeight / 2f;
+
+        // 获取大图片的显示尺寸计算图片的缩放比例
+        float touchimageScaleX = (float) touchImage.getWidth() / ORIGINAL_IMAGE_WIDTH;
+        float touchimageScaleY = (float) touchImage.getHeight() / ORIGINAL_IMAGE_HEIGHT;
+        touchimageScale = Math.min(touchimageScaleX, touchimageScaleY);
+
+        //计算活动区域中心点位置
+        startX= (touchImage.getWidth() - ORIGINAL_IMAGE_WIDTH*touchimageScale) / 2f;
+        startY= (touchImage.getHeight() - ORIGINAL_IMAGE_HEIGHT*touchimageScale) / 2f;
+        activityAreaCenterX= ACTIVITY_AREA_CENTER_X * touchimageScale + startX;
+        activityAreaCenterY= ACTIVITY_AREA_CENTER_Y * touchimageScale + startY;
+
+        // 设置小图片的大小
+        touchimage2Width=touchimage2Width*touchimageScale;
+        touchimage2Height=touchimage2Height*touchimageScale;
+        ViewGroup.LayoutParams lp = touchImage2.getLayoutParams();
+        lp.width = Math.round(touchimage2Width);
+        lp.height = Math.round(touchimage2Height);
+        touchImage2.setLayoutParams(lp);
+
+        //计算屏幕X,Y映射比例
+        screenScaleX=ACTIVITY_AREA_WIDTH*touchimageScale/screenWidth;
+        screenScaleY=ACTIVITY_AREA_HEIGHT*touchimageScale/screenHeight;
+
+    }
+    /**
+     * 重置小图片到可活动区域中心
+     */
+    private void resetSmallImagePosition() {
+        float newX= activityAreaCenterX - touchimage2Width / 2;
+        float newY= activityAreaCenterY - touchimage2Height / 2;
+        // 更新小图片位置
+        touchImage2.setX(newX);
+        touchImage2.setY(newY);
+    }
+    /**
+     * 更新小图片位置
+     */
+    private void updateSmallImagePosition(float touchX, float touchY) {
+        // 计算触摸点相对于屏幕中心的偏移
+        float newX = (touchX - screenCenterX) * screenScaleX + activityAreaCenterX - touchimage2Width / 2;
+        float newY = (touchY - screenCenterY) * screenScaleY + activityAreaCenterY - touchimage2Height / 2;
+
+        // 更新小图片位置
+        touchImage2.setX(newX);
+        touchImage2.setY(newY);
+    }
+
 
     /**
      * 创建通知渠道（Android 8.0+需要）
