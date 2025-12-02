@@ -52,7 +52,7 @@ public class LoginManager {
             Intent intent = new Intent(loginActivity, MainActivity.class);
             loginActivity.startActivity(intent);
         }
-
+        clearLastActivity(loginActivity);
         // 结束登录Activity
         loginActivity.finish();
     }
