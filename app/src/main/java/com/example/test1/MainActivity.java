@@ -257,7 +257,7 @@ public class MainActivity extends BaseActivity implements SideFragment.OnSidebar
 
     private void showAboutDialog() {
         String appName = getApplicationInfo().loadLabel(getPackageManager()).toString();
-        String version = "V1.0";
+        String version = "V00";
         try {
             version = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
         } catch (PackageManager.NameNotFoundException e) {

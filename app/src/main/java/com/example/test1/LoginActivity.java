@@ -1,9 +1,11 @@
 package com.example.test1;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Matrix;
 import android.os.Build;
 import android.os.Bundle;
@@ -21,14 +23,19 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.core.content.ContextCompat;
 
 public class LoginActivity extends AppCompatActivity {
 
     private static final String CHANNEL_ID = "LOGIN_CHANNEL";
     private static final int NOTIFICATION_ID = 1001;
+    private ActivityResultLauncher<String> notificationPermissionLauncher;
+
     // 大图片尺寸
     private static final int ORIGINAL_IMAGE_WIDTH = 228;
     private static final int ORIGINAL_IMAGE_HEIGHT = 180;
@@ -74,6 +81,16 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_login);
+
+        notificationPermissionLauncher = registerForActivityResult(
+                new ActivityResultContracts.RequestPermission(),
+                granted -> {
+                    if (!granted) {
+                        Toast.makeText(this, "需要通知权限以显示登录状态", Toast.LENGTH_SHORT).show();
+                    }
+                }
+        );
+        checkNotificationPermission();
 
         // 初始化View
         touchImage = findViewById(R.id.touchImage);
@@ -155,14 +172,41 @@ public class LoginActivity extends AppCompatActivity {
                 sendLoginNotification(username, password, false, "用户名或密码为空");
                 Toast.makeText(LoginActivity.this, "请输入用户名和密码", Toast.LENGTH_SHORT).show();
             } else {
+                // 先检查账号是否存在
+                if (!LoginManager.userExists(username)) {
+                    // 账号不存在：给出“注册”和“取消”
+                    new androidx.appcompat.app.AlertDialog.Builder(LoginActivity.this)
+                            .setTitle("账号不存在")
+                            .setMessage("未找到该账号，是否前往注册？")
+                            .setPositiveButton("注册", (dialog, which) -> {
+                                Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
+                                startActivity(intent);
+                            })
+                            .setNegativeButton("取消", (dialog, which) -> dialog.dismiss())
+                            .show();
+                    return;
+                }
+
+                // 再检查账号密码是否匹配
+                boolean valid = LoginManager.validateUser(username, password);
+                if (!valid) {
+                    // 密码错误：弹出“好的”对话框
+                    new androidx.appcompat.app.AlertDialog.Builder(LoginActivity.this)
+                            .setTitle("登录失败")
+                            .setMessage("用户名或密码错误")
+                            .setPositiveButton("好的", (dialog, which) -> dialog.dismiss())
+                            .show();
+                    return;
+                }
+
+                // 验证成功：沿用原来的成功逻辑
                 String combinedText = "用户名: " + username + "+密码: " + password;
                 Toast.makeText(LoginActivity.this, combinedText, Toast.LENGTH_SHORT).show();
-                // 发送登录成功通知
+
                 sendLoginNotification(username, password, true, "登录成功");
-                // 设置登录状态
+
                 LoginManager.setLoggedIn(this, true);
                 LoginManager.setUsername(this, username);
-                // 返回到之前的Activity
                 LoginManager.returnToPreviousActivity(this);
             }
         });
@@ -277,6 +321,13 @@ public class LoginActivity extends AppCompatActivity {
      * @param message 附加消息
      */
     private void sendLoginNotification(String username, String password, boolean isSuccess, String message) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                        != PackageManager.PERMISSION_GRANTED) {
+            checkNotificationPermission();
+            Toast.makeText(this, "请先授予通知权限", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
         // 构建通知内容
         String notificationTitle = isSuccess ? "🎉 登录成功" : "❌ 登录失败";
@@ -319,7 +370,14 @@ public class LoginActivity extends AppCompatActivity {
             Toast.makeText(this, "请开启通知权限以接收登录状态", Toast.LENGTH_LONG).show();
         }
     }
-
+    private void checkNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED) {
+                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
+            }
+        }
+    }
     /*
      * 获取当前时间字符串
      */

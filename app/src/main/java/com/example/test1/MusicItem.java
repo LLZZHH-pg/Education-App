@@ -13,7 +13,6 @@ public class MusicItem {
         this.title = title;
     }
 
-
     public String getAlbum() {
         return album;
     }
