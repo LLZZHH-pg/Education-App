@@ -2,14 +2,119 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:gravity="center"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@android:color/white">
+
+    <LinearLayout
+        android:id="@+id/schedule_form_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <EditText
+            android:id="@+id/et_schedule_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="日程名"
+            android:padding="12dp"
+            android:inputType="textCapSentences" />
+
+        <EditText
+            android:id="@+id/et_schedule_content"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="内容"
+            android:minLines="3"
+            android:gravity="top"
+            android:padding="12dp"
+            android:inputType="textMultiLine" />
+
+        <EditText
+            android:id="@+id/et_schedule_time"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="选择时间"
+            android:padding="12dp"
+            android:focusable="false"
+            android:clickable="true" />
+
+        <Spinner
+            android:id="@+id/sp_schedule_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="4dp" />
+
+        <Button
+            android:id="@+id/btn_save_schedule"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="保存日程"
+            android:layout_marginTop="8dp" />
+    </LinearLayout>
 
     <TextView
-        android:id="@+id/fragment_text"
-        android:layout_width="wrap_content"
+        android:id="@+id/tv_schedule_header"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="18sp"
-        android:textStyle="bold" />
+        android:text="日程表"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:paddingTop="16dp"
+        android:paddingBottom="8dp" />
 
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true"
+        android:scrollbars="vertical">
+
+        <TableLayout
+            android:id="@+id/table_schedules"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:stretchColumns="*">
+
+            <TableRow
+                android:background="@color/my_light_primary">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="日程名"
+                    android:textColor="@android:color/white"
+                    android:textStyle="bold"
+                    android:padding="12dp" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="内容"
+                    android:textColor="@android:color/white"
+                    android:textStyle="bold"
+                    android:padding="12dp" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="时间"
+                    android:textColor="@android:color/white"
+                    android:textStyle="bold"
+                    android:padding="12dp" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="状态"
+                    android:textColor="@android:color/white"
+                    android:textStyle="bold"
+                    android:padding="12dp" />
+            </TableRow>
+        </TableLayout>
+    </androidx.core.widget.NestedScrollView>
 </LinearLayout>
