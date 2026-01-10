@@ -95,14 +95,14 @@ public class MainActivity extends BaseActivity implements SideFragment.OnSidebar
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.fragment_container, new CenterActivity1())
                 .commit();
-        updateToolbarTitle("页面1");
+        updateToolbarTitle("面板");
         closeSidebar();
     }
     private void showPage2() {
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.fragment_container, new CenterActivity2())
                 .commit();
-        updateToolbarTitle("页面2");
+        updateToolbarTitle("助手");
         closeSidebar();
     }
 
@@ -110,7 +110,7 @@ public class MainActivity extends BaseActivity implements SideFragment.OnSidebar
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.fragment_container, new CenterActivity3())
                 .commit();
-        updateToolbarTitle("页面3");
+        updateToolbarTitle("储存");
         closeSidebar();
     }
 

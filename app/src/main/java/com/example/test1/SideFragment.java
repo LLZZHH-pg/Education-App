@@ -83,12 +83,4 @@ public class SideFragment extends Fragment{
         return view;
     }
 
-    private void closeSidebar() {
-        // 移除侧边栏 Fragment
-        if (getActivity() != null) {
-            getActivity().getSupportFragmentManager().beginTransaction()
-                    .remove(this)
-                    .commit();
-        }
-    }
 }

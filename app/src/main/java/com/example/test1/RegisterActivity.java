@@ -7,11 +7,9 @@
             import android.text.Html;
             import android.text.InputType;
             import android.text.method.LinkMovementMethod;
-            import android.widget.ArrayAdapter;
             import android.widget.Button;
             import android.widget.CheckBox;
             import android.widget.EditText;
-            import android.widget.Spinner;
             import android.widget.TextView;
             import android.widget.Toast;
 
@@ -30,7 +28,6 @@
                     EditText usernameEditText = findViewById(R.id.usernameEditText);
                     EditText passwordEditText = findViewById(R.id.passwordEditText);
                     EditText dateEditText = findViewById(R.id.dateEditText);
-                    Spinner preSpinner = findViewById(R.id.preSpinner);
 
                     TextView agreeText = findViewById(R.id.agreeText);
                     CheckBox agreeCheckBox = findViewById(R.id.agreeCheckBox);
@@ -65,17 +62,11 @@
                         }, y, m, d).show();
                     });
 
-                    // 偏好选择：禁止键盘，点击弹出列表
-                    final String[] prefs = new String[] {"运动", "音乐", "旅行", "电影", "阅读", "游戏"};
-                    ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, prefs);
-                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                    preSpinner.setAdapter(adapter);
 
                     registerButton.setOnClickListener(v -> {
                         String username = usernameEditText.getText().toString().trim();
                         String password = passwordEditText.getText().toString().trim();
                         String date = dateEditText.getText().toString().trim();
-                        String pref = preSpinner.getSelectedItem() == null ? "" : preSpinner.getSelectedItem().toString();
 
                         if (!agreeCheckBox.isChecked()) {
                             new AlertDialog.Builder(RegisterActivity.this)
@@ -84,12 +75,21 @@
                                     .setPositiveButton("同意", (dialog, which) -> agreeCheckBox.setChecked(true))
                                     .setNegativeButton("取消", (dialog, which) -> dialog.dismiss())
                                     .show();
-                        } else if (username.isEmpty() || password.isEmpty() || date.isEmpty() || pref.isEmpty()) {
-                            Toast.makeText(this, "请完整填写用户名、密码、生日与偏好", Toast.LENGTH_SHORT).show();
+                        } else if (username.isEmpty() || password.isEmpty() || date.isEmpty()) {
+                            Toast.makeText(this, "请完整填写用户名、密码、生日", Toast.LENGTH_SHORT).show();
                         } else {
-                            String message = username + " | 注册成功";
-                            Toast.makeText(RegisterActivity.this, message, Toast.LENGTH_SHORT).show();
-                            startActivity(new Intent(RegisterActivity.this, LoginActivity.class));
+                            UserDatabaseHelper dbHelper = new UserDatabaseHelper(this);
+                            if (dbHelper.checkUserExists(username)) {
+                                Toast.makeText(this, "该用户名已存在", Toast.LENGTH_SHORT).show();
+                            } else {
+                                boolean success = dbHelper.registerUser(username, password, date);
+                                if (success) {
+                                    Toast.makeText(this, "注册成功！请登录", Toast.LENGTH_SHORT).show();
+                                    finish(); // 返回登录页
+                                } else {
+                                    Toast.makeText(this, "注册失败，请重试", Toast.LENGTH_SHORT).show();
+                                }
+                            }
                         }
                     });
 
@@ -97,7 +97,6 @@
                         usernameEditText.setText("");
                         passwordEditText.setText("");
                         dateEditText.setText("");
-                        preSpinner.setSelection(0);
                     });
                 }
             }

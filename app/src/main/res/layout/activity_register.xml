@@ -53,19 +53,6 @@ android:gravity="center">
             app:layout_constraintTop_toBottomOf="@id/usernameEditText"
             android:layout_marginTop="16dp" />
 
-        <!-- 偏好输入 -->
-        <Spinner
-            android:id="@+id/preSpinner"
-            android:layout_width="0dp"
-            android:layout_height="60dp"
-            android:prompt="@string/prefer_prompt"
-            android:padding="16dp"
-            android:background="@android:drawable/editbox_background_normal"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/dateEditText"
-            android:layout_marginTop="16dp" />
-
         <!-- 密码输入 -->
         <EditText
             android:id="@+id/passwordEditText"
@@ -78,7 +65,7 @@ android:gravity="center">
             android:background="@android:drawable/editbox_background_normal"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/preSpinner"
+            app:layout_constraintTop_toBottomOf="@id/dateEditText"
             android:layout_marginTop="16dp" />
 
 

@@ -1,4 +1,3 @@
 <resources>
-    <string name="app_name">小东西</string>
-    <string name="prefer_prompt">请选择偏好</string>
+    <string name="app_name">看看成绩</string>
 </resources>

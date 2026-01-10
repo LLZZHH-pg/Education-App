@@ -173,7 +173,7 @@ public class LoginActivity extends AppCompatActivity {
                 Toast.makeText(LoginActivity.this, "请输入用户名和密码", Toast.LENGTH_SHORT).show();
             } else {
                 // 先检查账号是否存在
-                if (!LoginManager.userExists(username)) {
+                if (!LoginManager.userExists(this, username)) {
                     // 账号不存在：给出“注册”和“取消”
                     new androidx.appcompat.app.AlertDialog.Builder(LoginActivity.this)
                             .setTitle("账号不存在")
@@ -188,7 +188,7 @@ public class LoginActivity extends AppCompatActivity {
                 }
 
                 // 再检查账号密码是否匹配
-                boolean valid = LoginManager.validateUser(username, password);
+                boolean valid = LoginManager.validateUser(this,username, password);
                 if (!valid) {
                     // 密码错误：弹出“好的”对话框
                     new androidx.appcompat.app.AlertDialog.Builder(LoginActivity.this)

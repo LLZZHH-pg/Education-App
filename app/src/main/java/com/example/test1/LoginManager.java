@@ -6,9 +6,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class LoginManager {
     private static final String PREFS_NAME = "LoginPrefs";
     private static final String KEY_LAST_ACTIVITY = "last_activity";
@@ -25,13 +22,7 @@ public class LoginManager {
             this.password = p;
         }
     }
-    // 预置用户列表，仅用于本地测试
-    private static final List<User> PRESET_USERS = new ArrayList<>();
-    static {
-        PRESET_USERS.add(new User("student1", "123456"));
-        PRESET_USERS.add(new User("teacher1", "abc123"));
-        PRESET_USERS.add(new User("admin", "admin123"));
-    }
+
 
     /**
      * 保存当前Activity信息，然后跳转到登录页
@@ -96,23 +87,15 @@ public class LoginManager {
 
 
     // \*\*业务：仅检查账号是否存在\*\*
-    public static boolean userExists(String username) {
-        for (User user : PRESET_USERS) {
-            if (user.username.equals(username)) {
-                return true;
-            }
-        }
-        return false;
+    public static boolean userExists(Context context, String username) {
+        UserDatabaseHelper dbHelper = new UserDatabaseHelper(context);
+        return dbHelper.checkUserExists(username);
     }
 
     // \*\*业务：检查账号和密码是否匹配\*\*
-    public static boolean validateUser(String username, String password) {
-        for (User user : PRESET_USERS) {
-            if (user.username.equals(username) && user.password.equals(password)) {
-                return true;
-            }
-        }
-        return false;
+    public static boolean validateUser(Context context, String username, String password) {
+        UserDatabaseHelper dbHelper = new UserDatabaseHelper(context);
+        return dbHelper.validateLogin(username, password);
     }
 
 

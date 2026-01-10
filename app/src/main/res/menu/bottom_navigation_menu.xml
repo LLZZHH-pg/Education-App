@@ -2,14 +2,14 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/nav_page1"
-        android:icon="@android:drawable/ic_dialog_info"
-        android:title="页面1" />
+        android:icon="@android:drawable/ic_menu_view"
+        android:title="面板" />
     <item
         android:id="@+id/nav_page2"
-        android:icon="@android:drawable/ic_menu_edit"
-        android:title="页面2" />
+        android:icon="@android:drawable/ic_menu_today"
+        android:title="助手" />
     <item
         android:id="@+id/nav_page3"
-        android:icon="@android:drawable/ic_menu_help"
-        android:title="页面3" />
+        android:icon="@android:drawable/ic_menu_save"
+        android:title="储存" />
 </menu>
