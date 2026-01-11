@@ -28,6 +28,7 @@
                     EditText usernameEditText = findViewById(R.id.usernameEditText);
                     EditText passwordEditText = findViewById(R.id.passwordEditText);
                     EditText dateEditText = findViewById(R.id.dateEditText);
+                    EditText subjectsEditText = findViewById(R.id.subjectsEditText);
 
                     TextView agreeText = findViewById(R.id.agreeText);
                     CheckBox agreeCheckBox = findViewById(R.id.agreeCheckBox);
@@ -67,6 +68,7 @@
                         String username = usernameEditText.getText().toString().trim();
                         String password = passwordEditText.getText().toString().trim();
                         String date = dateEditText.getText().toString().trim();
+                        String subjectsRaw = subjectsEditText.getText().toString().trim();
 
                         if (!agreeCheckBox.isChecked()) {
                             new AlertDialog.Builder(RegisterActivity.this)
@@ -75,14 +77,18 @@
                                     .setPositiveButton("同意", (dialog, which) -> agreeCheckBox.setChecked(true))
                                     .setNegativeButton("取消", (dialog, which) -> dialog.dismiss())
                                     .show();
-                        } else if (username.isEmpty() || password.isEmpty() || date.isEmpty()) {
-                            Toast.makeText(this, "请完整填写用户名、密码、生日", Toast.LENGTH_SHORT).show();
-                        } else {
+                        } else if (username.isEmpty() || password.isEmpty() || date.isEmpty() || subjectsRaw.isEmpty()) {
+                            Toast.makeText(this, "请完整填写用户名、密码、生日、学科", Toast.LENGTH_SHORT).show();
+                        } else if(!subjectsRaw.matches("^[\\u4e00-\\u9fa5a-zA-Z0-9\\s]+$")){
+                            Toast.makeText(this, "学科格式错误", Toast.LENGTH_SHORT).show();
+                        }
+                        else {
                             UserDatabaseHelper dbHelper = new UserDatabaseHelper(this);
                             if (dbHelper.checkUserExists(username)) {
                                 Toast.makeText(this, "该用户名已存在", Toast.LENGTH_SHORT).show();
                             } else {
-                                boolean success = dbHelper.registerUser(username, password, date);
+                                String formattedSubjects = subjectsRaw.replaceAll("\\s+", " ").trim();
+                                boolean success = dbHelper.registerUser(username, password, date,formattedSubjects);
                                 if (success) {
                                     Toast.makeText(this, "注册成功！请登录", Toast.LENGTH_SHORT).show();
                                     finish(); // 返回登录页

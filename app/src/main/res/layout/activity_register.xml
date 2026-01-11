@@ -52,7 +52,20 @@ android:gravity="center">
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/usernameEditText"
             android:layout_marginTop="16dp" />
-
+        <!-- 学科输入 -->
+        <EditText
+            android:id="@+id/subjectsEditText"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:hint="学科(请用空格隔开)"
+            android:inputType="text"
+            android:maxLines="1"
+            android:padding="16dp"
+            android:background="@android:drawable/editbox_background_normal"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/dateEditText"
+            android:layout_marginTop="16dp" />
         <!-- 密码输入 -->
         <EditText
             android:id="@+id/passwordEditText"
@@ -65,7 +78,7 @@ android:gravity="center">
             android:background="@android:drawable/editbox_background_normal"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/dateEditText"
+            app:layout_constraintTop_toBottomOf="@id/subjectsEditText"
             android:layout_marginTop="16dp" />
 
 

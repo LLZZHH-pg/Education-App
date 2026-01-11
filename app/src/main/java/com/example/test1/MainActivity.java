@@ -4,19 +4,19 @@ package com.example.test1;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.view.Gravity;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.PopupMenu;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+
+import java.util.List;
 
 public class MainActivity extends BaseActivity implements SideFragment.OnSidebarItemClickListener{
 
@@ -24,6 +24,7 @@ public class MainActivity extends BaseActivity implements SideFragment.OnSidebar
     private static final String KEY_DARK_MODE = "dark_mode";
     private boolean isSidebarOpen = false;
     private Button menuButton;
+    private int currentNavId = R.id.nav_page1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,26 +32,65 @@ public class MainActivity extends BaseActivity implements SideFragment.OnSidebar
         setContentView(R.layout.activity_main);
         menuButton = findViewById(R.id.menu_button);
         updateMenuButton(); // 初始化菜单按钮状态
-//        if (menuButton != null) {
-//            menuButton.setOnClickListener(this::showSidebar);
-//        }
-        // 设置主内容区域点击监听，点击时关闭侧边栏
+
+        // 初始化底部导航监听
+        BottomNavigationView navView = findViewById(R.id.bottom_navigation);
+        navView.setOnItemSelectedListener(item -> {
+            currentNavId = item.getItemId();
+            updateToolbarTitle(item.getTitle().toString());
+            refreshFragment(); // 切换 Tab 时触发逻辑判断
+            return true;
+        });
+
+        // 初始加载第一个页面
+        refreshFragment();
+
         findViewById(R.id.fragment_container).setOnClickListener(v -> {
             if (isSidebarOpen) {
                 closeSidebar();
             }
         });
-        // 使用 Handler 延迟执行，确保布局完全初始化
-        if (savedInstanceState == null) {
-            // 默认页面
-            findViewById(android.R.id.content).post(this::showPage1);
+    }
+
+    /**
+     * 核心逻辑：刷新 Fragment。
+     * 1. 检查登录状态。
+     * 2. 未登录则显示 EmptyActivity。
+     * 3. 已登录则显示对应的 CenterFragment，并尝试初始化该用户的成绩数据库。
+     */
+    private void refreshFragment() {
+        boolean loggedIn = LoginManager.isLoggedIn(this);
+        Fragment targetFragment;
+
+        if (!loggedIn) {
+            // 未登录：强制显示占位 Fragment
+            targetFragment = new EmptyActivity();
+        } else {
+            // 已登录：触发成绩数据库初始化
+            checkAndInitUserDatabase();
+
+            // 根据底部导航 ID 分发对应的真实 Fragment
+            if (currentNavId == R.id.nav_page1) {
+                targetFragment = new CenterActivity1();
+            } else if (currentNavId == R.id.nav_page2) {
+                targetFragment = new CenterActivity2();
+            } else if (currentNavId == R.id.nav_page3){
+                targetFragment = new CenterActivity3();
+            }else {
+                targetFragment = new CenterActivity1(); // 默认回退
+            }
         }
-        setupBottomNavigation();
+
+        // 执行 Fragment 替换，解决 Activity 渲染冲突
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, targetFragment)
+                .commitAllowingStateLoss();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        refreshFragment();
         updateMenuButton();
     }
 
@@ -70,48 +110,25 @@ public class MainActivity extends BaseActivity implements SideFragment.OnSidebar
             }
         }
     }
-    private void setupBottomNavigation() {
-        BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
-        if (bottomNav!= null) {
-            bottomNav.setOnItemSelectedListener(this::onBottomNavigationItemSelected);
-        }
-    }
 
-    private boolean onBottomNavigationItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        if (id == R.id.nav_page1) {
-            showPage1();
-            return true;
-        } else if (id == R.id.nav_page2) {
-            showPage2();
-            return true;
-        } else if (id == R.id.nav_page3) {
-            showPage3();
-            return true;
-        }
-        return false;
-    }
-    private void showPage1() {
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.fragment_container, new CenterActivity1())
-                .commit();
-        updateToolbarTitle("面板");
-        closeSidebar();
-    }
-    private void showPage2() {
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.fragment_container, new CenterActivity2())
-                .commit();
-        updateToolbarTitle("助手");
-        closeSidebar();
-    }
+    /**
+     * 成绩数据库触发器
+     */
+    private void checkAndInitUserDatabase() {
+        String username = LoginManager.getUsername(this);
+        // 获取学科列表 (假定 LoginManager 已实现返回 List<String> 的方法)
+        List<String> subjects = LoginManager.getSubjectsList(this);
 
-    private void showPage3() {
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.fragment_container, new CenterActivity3())
-                .commit();
-        updateToolbarTitle("储存");
-        closeSidebar();
+        if (!username.isEmpty() && subjects != null && !subjects.isEmpty()) {
+            // 实例化 Helper 并获取数据库实例，这会自动触发 ScoreDatabaseHelper 的 onCreate
+            ScoreDatabaseHelper scoreDbHelper = new ScoreDatabaseHelper(this, username, subjects);
+            try {
+                // 仅通过触发 getWritableDatabase 确保表被创建
+                scoreDbHelper.getWritableDatabase();
+            } finally {
+                scoreDbHelper.close();
+            }
+        }
     }
 
     private void updateToolbarTitle(String title) {
@@ -120,29 +137,7 @@ public class MainActivity extends BaseActivity implements SideFragment.OnSidebar
             toolbarTitle.setText(title);
         }
     }
-//    private void showMenu(View anchor) {
-//        PopupMenu popup = new PopupMenu(this, anchor);
-//        popup.getMenu().add(0, 1, 0, "登录");
-//        popup.getMenu().add(0, 2, 1, "切换主题色");
-//        popup.getMenu().add(0,3,2,"详细信息");
-//        popup.setOnMenuItemClickListener(this::onMenuItemSelected);
-//        popup.show();
-//    }
 
-//    private boolean onMenuItemSelected(MenuItem item) {
-//        int id = item.getItemId();
-//        if (id == 1) { // 登录
-//            LoginManager.navigateToLogin(this);
-//            return true;
-//        } else if (id == 2) { // 切换主题色（夜间/日间切换示例）
-//            toggleTheme();
-//            return true;
-//        }else if(id ==3){ // 详细信息
-//            showAboutDialog();
-//            return true;
-//        }
-//        return false;
-//    }
     private void showSidebar(View anchor) {
         if (isSidebarOpen) {
             closeSidebar();

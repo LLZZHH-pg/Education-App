@@ -205,6 +205,8 @@ public class LoginActivity extends AppCompatActivity {
 
                 sendLoginNotification(username, password, true, "登录成功");
 
+
+                LoginManager.setSubjects(this, username);
                 LoginManager.setLoggedIn(this, true);
                 LoginManager.setUsername(this, username);
                 LoginManager.returnToPreviousActivity(this);

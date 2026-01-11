@@ -8,7 +8,7 @@ android {
 
     defaultConfig {
         applicationId "com.example.test1"
-        minSdk 24
+        minSdk 26
         targetSdk 36
         versionCode 1
         versionName "1.0"
@@ -38,4 +38,10 @@ dependencies {
     testImplementation libs.junit
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core
+
+    implementation libs.recyclerview
+    // Apache POI 用于解析 Excel (.xlsx)
+    implementation 'org.apache.poi:poi-ooxml:5.5.1'
+    // POI 有时需要这些辅助库来处理 Android 上的压缩格式
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.20.1'
 }

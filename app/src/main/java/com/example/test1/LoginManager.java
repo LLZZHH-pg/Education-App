@@ -6,23 +6,16 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 public class LoginManager {
     private static final String PREFS_NAME = "LoginPrefs";
     private static final String KEY_LAST_ACTIVITY = "last_activity";
     private static final String KEY_IS_LOGGED_IN = "is_logged_in";
     private static final String KEY_USERNAME = "username";
-
-
-    // 简单用户数据模型
-    private static class User {
-        String username;
-        String password;
-        User(String u, String p) {
-            this.username = u;
-            this.password = p;
-        }
-    }
-
+    private static final String KEY_SUBJECTS = "user_subjects";
 
     /**
      * 保存当前Activity信息，然后跳转到登录页
@@ -103,32 +96,54 @@ public class LoginManager {
      * 设置登录状态
      */
     public static void setLoggedIn(Context context, boolean isLoggedIn) {
-        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        prefs.edit().putBoolean(KEY_IS_LOGGED_IN, isLoggedIn).apply();
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().putBoolean(KEY_IS_LOGGED_IN, isLoggedIn).apply();
     }
 
     /**
      * 获取登录状态
      */
     public static boolean isLoggedIn(Context context) {
-        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        return prefs.getBoolean(KEY_IS_LOGGED_IN, false);
+        return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).getBoolean(KEY_IS_LOGGED_IN, false);
     }
 
     /**
      * 设置用户名
      */
     public static void setUsername(Context context, String username) {
-        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        prefs.edit().putString(KEY_USERNAME, username).apply();
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().putString(KEY_USERNAME, username).apply();
     }
 
     /**
      * 获取用户名
      */
     public static String getUsername(Context context) {
-        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        return prefs.getString(KEY_USERNAME, "");
+        return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).getString(KEY_USERNAME, "");
+    }
+
+    /**
+     * 设置用户学科信息
+     */
+    public static void setSubjects(Context context, String username) {
+        UserDatabaseHelper dbHelper = new UserDatabaseHelper(context);
+        String subjects = dbHelper.getUserSubjects(username);
+        if(!(subjects == null || subjects.isEmpty())){
+            context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().putString(KEY_SUBJECTS, subjects).apply();
+        }
+
+    }
+
+    /**
+     * 获取用户学科信息
+     */
+    public static List<String> getSubjectsList(Context context) {
+
+        String subjects = context.getSharedPreferences("LoginPrefs", Context.MODE_PRIVATE)
+                .getString(KEY_SUBJECTS, "");
+        if(subjects == null || subjects.isEmpty()){
+            return new ArrayList<>();
+        }else {
+            return new ArrayList<>(Arrays.asList(subjects.split(" ")));
+        }
     }
 
     /**

@@ -18,8 +18,7 @@ public class UserDatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE " + TABLE_USERS + " (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE, password TEXT, birthday TEXT)");
-    }
+        db.execSQL("CREATE TABLE " + TABLE_USERS + " (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE, password TEXT, birthday TEXT, subjects TEXT)");    }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
@@ -45,12 +44,13 @@ public class UserDatabaseHelper extends SQLiteOpenHelper {
     }
 
     // 插入新用户
-    public boolean registerUser(String username, String password, String birthday) {
+    public boolean registerUser(String username, String password, String birthday, String subjects) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put("username", username);
         values.put("password", hashPassword(password));
         values.put("birthday", birthday);
+        values.put("subjects", subjects); // 存入处理后的空格分隔字符串
         long result = db.insert(TABLE_USERS, null, values);
         return result != -1;
     }
@@ -72,5 +72,17 @@ public class UserDatabaseHelper extends SQLiteOpenHelper {
         boolean valid = cursor.getCount() > 0;
         cursor.close();
         return valid;
+    }
+
+    // 根据用户名获取学科
+    public String getUserSubjects(String username) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_USERS, new String[]{"subjects"}, "username=?", new String[]{username}, null, null, null);
+        String subjects = "";
+        if (cursor.moveToFirst()) {
+            subjects = cursor.getString(0);
+        }
+        cursor.close();
+        return subjects;
     }
 }
