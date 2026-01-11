@@ -11,8 +11,7 @@ public class SideFragment extends Fragment{
     private OnSidebarItemClickListener listener;
 
     public interface OnSidebarItemClickListener {
-//        void onLoginClicked();
-        void onThemeToggleClicked();
+        void onEditSubjectsClicked();
         void onAboutClicked();
         void onLogoutClicked();
 
@@ -37,29 +36,22 @@ public class SideFragment extends Fragment{
         }
         usernameText.setText(usernameInside);
 
-//        Button btnLogin = view.findViewById(R.id.btn_login);
-        Button btnTheme = view.findViewById(R.id.btn_theme);
+        Button btnEditSubjects = view.findViewById(R.id.btn_edit_subjects);
         Button btnAbout = view.findViewById(R.id.btn_about);
         Button btnLogout = view.findViewById(R.id.btn_logout);
 
         Button btnTel=view.findViewById(R.id.btn_tel);
         Button btnEmail=view.findViewById(R.id.btn_email);
 
-//        btnLogin.setOnClickListener(v -> {
-//            if (listener != null) {
-//                listener.onLoginClicked();
-//            }
-//        });
+        btnEditSubjects.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onEditSubjectsClicked();
+            }
+        });
 
         btnLogout.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onLogoutClicked();
-            }
-        });
-
-        btnTheme.setOnClickListener(v -> {
-            if (listener != null) {
-                listener.onThemeToggleClicked();
             }
         });
 

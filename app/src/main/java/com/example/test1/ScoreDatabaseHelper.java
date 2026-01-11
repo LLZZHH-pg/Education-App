@@ -45,7 +45,8 @@ public class ScoreDatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        // 后续实现修改学科时的 ALTER TABLE 逻辑
+        db.execSQL("DROP TABLE IF EXISTS " + tableName);
+        onCreate(db);
     }
 
     // 查询所有数据，按新到旧排序
@@ -53,5 +54,35 @@ public class ScoreDatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
         // 根据 id 降序排列，即为最后插入的在最前面
         return db.query(tableName, null, null, null, null, null, "id DESC");
+    }
+
+    /**
+     * 检查并添加缺失的学科列
+     * @param newSubjects 用户最新修改的学科列表
+     */
+    public void addMissingColumns(List<String> newSubjects) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        // 1. 获取数据库中现有的所有列名
+        android.database.Cursor cursor = db.rawQuery("PRAGMA table_info(" + tableName + ")", null);
+        java.util.Set<String> existingColumns = new java.util.HashSet<>();
+        if (cursor != null) {
+            while (cursor.moveToNext()) {
+                // "name" 对应的是列名所在的索引，通常是 1
+                existingColumns.add(cursor.getString(1));
+            }
+            cursor.close();
+        }
+
+        // 2. 遍历新学科列表，如果列不存在则添加
+        for (String subject : newSubjects) {
+            if (!existingColumns.contains(subject)) {
+                try {
+                    // 执行增加列的 SQL：ALTER TABLE score_table ADD COLUMN "新学科" REAL
+                    db.execSQL("ALTER TABLE " + tableName + " ADD COLUMN \"" + subject + "\" REAL");
+                } catch (Exception e) {
+                    e.printStackTrace(); // 防止学科名包含非法字符导致崩溃
+                }
+            }
+        }
     }
 }

@@ -28,30 +28,37 @@ public class ScoreAdapter extends RecyclerView.Adapter<ScoreAdapter.ViewHolder> 
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        // 使用内置的简单布局或自定义 item_score.xml
+        // 使用自定义的 item_score 布局
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(android.R.layout.simple_list_item_2, parent, false);
+                .inflate(R.layout.item_score, parent, false);
         return new ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         if (cursor != null && cursor.moveToPosition(position)) {
+            // 1. 考试名
             String examName = cursor.getString(cursor.getColumnIndexOrThrow("exam_name"));
-            String time = cursor.getString(cursor.getColumnIndexOrThrow("upload_time"));
+            holder.tvExamName.setText(examName);
 
-            holder.text1.setText(examName + " (" + time + ")");
+            // 2. 时间 (只截取日期部分 yyyy-MM-dd，如果太长的话)
+            String fullTime = cursor.getString(cursor.getColumnIndexOrThrow("upload_time"));
+            holder.tvUploadTime.setText(fullTime.split(" ")[0]);
 
-            // 动态拼接当前用户关注的学科成绩
-            StringBuilder scoreDetail = new StringBuilder();
+            // 3. 动态拼接学科成绩
+            StringBuilder sb = new StringBuilder();
             for (String subject : subjects) {
                 int colIndex = cursor.getColumnIndex(subject);
                 if (colIndex != -1) {
-                    String val = cursor.getString(colIndex);
-                    scoreDetail.append(subject).append(": ").append(val != null ? val : "0").append("  ");
+                    double score = cursor.getDouble(colIndex);
+                    // 格式化：如果是整数则不显示小数点
+                    String scoreStr = (score == (long) score)
+                            ? String.valueOf((long) score)
+                            : String.valueOf(score);
+                    sb.append(subject).append(":").append(scoreStr).append(" ");
                 }
             }
-            holder.text2.setText(scoreDetail.toString().trim());
+            holder.tvSubjectsScores.setText(sb.toString().trim());
         }
     }
 
@@ -61,11 +68,12 @@ public class ScoreAdapter extends RecyclerView.Adapter<ScoreAdapter.ViewHolder> 
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView text1, text2;
+        TextView tvExamName, tvUploadTime, tvSubjectsScores;
         ViewHolder(View itemView) {
             super(itemView);
-            text1 = itemView.findViewById(android.R.id.text1);
-            text2 = itemView.findViewById(android.R.id.text2);
+            tvExamName = itemView.findViewById(R.id.tv_exam_name);
+            tvUploadTime = itemView.findViewById(R.id.tv_upload_time);
+            tvSubjectsScores = itemView.findViewById(R.id.tv_subjects_scores);
         }
     }
 }

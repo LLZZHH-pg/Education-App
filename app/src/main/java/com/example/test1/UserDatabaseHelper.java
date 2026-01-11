@@ -85,4 +85,12 @@ public class UserDatabaseHelper extends SQLiteOpenHelper {
         cursor.close();
         return subjects;
     }
+
+    public boolean updateUserSubjects(String username, String newSubjects) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("subjects", newSubjects);
+        int rows = db.update("users", values, "username=?", new String[]{username});
+        return rows > 0;
+    }
 }

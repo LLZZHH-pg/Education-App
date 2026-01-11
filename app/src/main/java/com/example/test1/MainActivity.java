@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatDelegate;
@@ -213,11 +214,50 @@ public class MainActivity extends BaseActivity implements SideFragment.OnSidebar
     }
 
     // 侧边栏菜单项点击回调
-//    @Override
-//    public void onLoginClicked() {
-//        closeSidebar();
-//        LoginManager.navigateToLogin(this);
-//    }
+    @Override
+    public void onEditSubjectsClicked() {
+        closeSidebar();
+
+        // 1. 获取当前用户名
+        String username = LoginManager.getUsername(this);
+        if (username.equals("未登录")) {
+            Toast.makeText(this, "请先登录", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // 2. 从数据库读取当前学科字符串
+        UserDatabaseHelper dbHelper = new UserDatabaseHelper(this);
+        String currentSubjects = dbHelper.getUserSubjects(username);
+
+        // 3. 弹出对话框
+        android.widget.EditText editText = new android.widget.EditText(this);
+        editText.setText(currentSubjects);
+        editText.setHint("新学科(请用空格分隔)");
+
+        new AlertDialog.Builder(this)
+                .setTitle("修改学科设置")
+                .setView(editText)
+                .setPositiveButton("保存", (dialog, which) -> {
+                    String newSubjects = editText.getText().toString().trim();
+                    if (newSubjects.isEmpty()) return;
+                    List<String> newSubjectsList = java.util.Arrays.asList(newSubjects.split(" "));
+                    ScoreDatabaseHelper scoreDbHelper = new ScoreDatabaseHelper(this, username, newSubjectsList);
+                    scoreDbHelper.addMissingColumns(newSubjectsList);
+                    scoreDbHelper.close();
+
+                    if (dbHelper.updateUserSubjects(username, newSubjects)) {
+                        LoginManager.setSubjects(this, username);
+                        Toast.makeText(this, "学科更新成功", Toast.LENGTH_SHORT).show();
+
+                        // 如果需要立即刷新 Page3 的界面，可以发送一个广播或通过 FragmentManager 通知
+                    } else {
+                        Toast.makeText(this, "更新失败", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .setNegativeButton("取消", null)
+                .show();
+    }
+
     @Override
     public void onLogoutClicked() {
         closeSidebar();
@@ -225,29 +265,11 @@ public class MainActivity extends BaseActivity implements SideFragment.OnSidebar
         updateMenuButton();
     }
 
-    @Override
-    public void onThemeToggleClicked() {
-        closeSidebar();
-        toggleTheme();
-    }
 
     @Override
     public void onAboutClicked() {
         closeSidebar();
         showAboutDialog();
-    }
-    private void toggleTheme() {
-        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        boolean isDark = prefs.getBoolean(KEY_DARK_MODE, false);
-        boolean newDark = !isDark;
-        prefs.edit().putBoolean(KEY_DARK_MODE, newDark).apply();
-
-        AppCompatDelegate.setDefaultNightMode(
-                newDark ? AppCompatDelegate.MODE_NIGHT_YES : AppCompatDelegate.MODE_NIGHT_NO
-        );
-
-        // 立即重建 Activity 以应用主题改变
-        recreate();
     }
 
     private void showAboutDialog() {

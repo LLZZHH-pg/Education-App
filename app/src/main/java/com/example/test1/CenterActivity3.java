@@ -79,54 +79,85 @@ public class CenterActivity3 extends Fragment {
     }
 
     private void processExcelFile(Uri uri) {
-        String fileName = getFileName(uri);
-        String currentTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
-
         try (InputStream is = requireContext().getContentResolver().openInputStream(uri)) {
             Workbook workbook = WorkbookFactory.create(is);
             Sheet sheet = workbook.getSheetAt(0);
-            Row headerRow = sheet.getRow(0); // 标题行
+            String fileName = getFileName(uri); // 获取考试名
 
-            // 1. 找到“姓名”列索引和各学科在Excel中的索引
+            // 1. 获取数据库连接
+            SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+            // 2. 检查文件名是否已经存在
+            boolean isUpdate = false;
+            long existingId = -1;
+            Cursor checkCursor = db.query(dbHelper.getTableName(), new String[]{"id"},
+                    "exam_name = ?", new String[]{fileName}, null, null, null);
+
+            if (checkCursor != null && checkCursor.getCount() > 0) {
+                checkCursor.moveToFirst();
+                existingId = checkCursor.getLong(0);
+                isUpdate = true;
+                checkCursor.close();
+                Toast.makeText(getContext(), "上传同名文件，将进行数据更新", Toast.LENGTH_SHORT).show();
+            }
+
+            Row headerRow = sheet.getRow(0);
+            Map<String, Integer> headerMap = new HashMap<>();
             int nameIndex = -1;
-            Map<String, Integer> excelSubjectMap = new HashMap<>();
+
+            // 解析表头
             for (int i = 0; i < headerRow.getLastCellNum(); i++) {
                 String header = getSafeString(headerRow.getCell(i));
                 if ("姓名".equals(header)) nameIndex = i;
-                excelSubjectMap.put(header, i);
+                headerMap.put(header, i);
             }
 
-            // 2. 遍历数据行
-            SQLiteDatabase db = dbHelper.getWritableDatabase();
+            if (nameIndex == -1) {
+                Toast.makeText(getContext(), "未找到'姓名'列", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            List<String> subjects = LoginManager.getSubjectsList(requireContext());
+            boolean foundUser = false;
+
+            // 遍历行
             for (int i = 1; i <= sheet.getLastRowNum(); i++) {
                 Row row = sheet.getRow(i);
                 if (row == null) continue;
 
                 String rowName = getSafeString(row.getCell(nameIndex));
-
-                // 3. 匹配当前登录用户名
                 if (currentUsername.equals(rowName)) {
+                    foundUser = true;
                     ContentValues values = new ContentValues();
-                    values.put("upload_time", currentTime);
-                    values.put("exam_name", fileName);
 
-                    // 4. 比较数据库列和文件列
-                    List<String> dbSubjects = LoginManager.getSubjectsList(requireContext()); // 应从配置获取
-                    for (String subject : dbSubjects) {
-                        if (excelSubjectMap.containsKey(subject)) {
-                            // 文件中有，取值
-                            Cell cell = row.getCell(excelSubjectMap.get(subject));
-                            values.put("\"" + subject + "\"", getCellValue(cell));
-                        } else {
-                            // 文件中没有，存 0.0
-                            values.put("\"" + subject + "\"", 0.0);
+                    // 3. 填充学科成绩 (REAL 类型)
+                    for (String subject : subjects) {
+                        Integer colIndex = headerMap.get(subject);
+                        if (colIndex != null) {
+                            values.put("\"" + subject + "\"", getCellValue(row.getCell(colIndex)));
                         }
                     }
-                    db.insert(dbHelper.getTableName(), null, values);
+
+                    if (isUpdate) {
+                        // 仅更新分数，不改变 exam_name 和 upload_time
+                        db.update(dbHelper.getTableName(), values, "id = ?", new String[]{String.valueOf(existingId)});
+                    } else {
+                        // 新增数据，添加时间、文件名和分数
+                        String currentTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
+                        values.put("upload_time", currentTime);
+                        values.put("exam_name", fileName);
+                        db.insert(dbHelper.getTableName(), null, values);
+                    }
+                    break; // 找到当前用户后跳出循环
                 }
             }
-            Toast.makeText(getContext(), "导入完成", Toast.LENGTH_SHORT).show();
-            refreshData();
+
+            if (!foundUser) {
+                Toast.makeText(getContext(), "Excel中未找到当前用户的数据", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(getContext(), isUpdate ? "数据已更新" : "导入完成", Toast.LENGTH_SHORT).show();
+                refreshData();
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
