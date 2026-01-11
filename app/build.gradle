@@ -41,7 +41,8 @@ dependencies {
 
     implementation libs.recyclerview
     // Apache POI 用于解析 Excel (.xlsx)
-    implementation 'org.apache.poi:poi-ooxml:5.5.1'
+    implementation libs.poi.ooxml
     // POI 有时需要这些辅助库来处理 Android 上的压缩格式
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.20.1'
+    implementation libs.jackson.databind
+    implementation(libs.mpandroidchart)
 }

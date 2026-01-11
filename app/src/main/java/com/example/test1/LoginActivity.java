@@ -168,8 +168,6 @@ public class LoginActivity extends AppCompatActivity {
                         })
                         .show();
             } else if (username.isEmpty() || password.isEmpty()) {
-                // 发送登录失败通知
-                sendLoginNotification(username, password, false, "用户名或密码为空");
                 Toast.makeText(LoginActivity.this, "请输入用户名和密码", Toast.LENGTH_SHORT).show();
             } else {
                 // 先检查账号是否存在
@@ -199,12 +197,7 @@ public class LoginActivity extends AppCompatActivity {
                     return;
                 }
 
-                // 验证成功：沿用原来的成功逻辑
-                String combinedText = "用户名: " + username + "+密码: " + password;
-                Toast.makeText(LoginActivity.this, combinedText, Toast.LENGTH_SHORT).show();
-
-                sendLoginNotification(username, password, true, "登录成功");
-
+                sendLoginNotification(username, true, "登录成功");
 
                 LoginManager.setSubjects(this, username);
                 LoginManager.setLoggedIn(this, true);
@@ -322,7 +315,7 @@ public class LoginActivity extends AppCompatActivity {
      * @param isSuccess 是否登录成功
      * @param message 附加消息
      */
-    private void sendLoginNotification(String username, String password, boolean isSuccess, String message) {
+    private void sendLoginNotification(String username, boolean isSuccess, String message) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
                 ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
                         != PackageManager.PERMISSION_GRANTED) {
@@ -337,9 +330,8 @@ public class LoginActivity extends AppCompatActivity {
 
         if (isSuccess) {
             notificationText = String.format(
-                    "用户名: %s\n密码: %s\n状态: %s\n时间: %s",
+                    "用户名: %s\n状态: %s\n时间: %s",
                     username,
-                    password,
                     message,
                     getCurrentTime()
             );

@@ -263,6 +263,8 @@ public class MainActivity extends BaseActivity implements SideFragment.OnSidebar
         closeSidebar();
         LoginManager.logout(this);
         updateMenuButton();
+        refreshFragment();
+        Toast.makeText(this, "已退出登录", Toast.LENGTH_SHORT).show();
     }
 
 
