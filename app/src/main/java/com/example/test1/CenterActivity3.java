@@ -224,6 +224,23 @@ public class CenterActivity3 extends Fragment {
 
         if (adapter == null) {
             adapter = new ScoreAdapter(cursor, subjects);
+
+            // 设置长按删除逻辑
+            adapter.setOnItemLongClickListener((id, examName) -> {
+                new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                        .setTitle("删除确认")
+                        .setMessage("确定要删除 '" + examName + "' 的成绩吗？")
+                        .setPositiveButton("删除", (dialog, which) -> {
+                            // 1. 从数据库删除
+                            dbHelper.deleteScoreById(id);
+                            // 2. 刷新列表
+                            refreshData();
+                            Toast.makeText(getContext(), "已删除", Toast.LENGTH_SHORT).show();
+                        })
+                        .setNegativeButton("取消", null)
+                        .show();
+            });
+
             recyclerView.setAdapter(adapter);
         } else {
             // 传入新查询的 Cursor 并通知 UI 更新

@@ -57,20 +57,14 @@ public class CenterActivity2 extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            requireActivity().registerReceiver(
-                    receiver,
-                    new IntentFilter(AIService.ACTION_AI_REPLY),
-                    Context.RECEIVER_NOT_EXPORTED // 仅允许应用内广播，更安全
-            );
-        } else {
-            requireActivity().registerReceiver(receiver, new IntentFilter(AIService.ACTION_AI_REPLY));
-        }
+        // 统一使用 LocalBroadcastManager 注册
+        androidx.localbroadcastmanager.content.LocalBroadcastManager.getInstance(requireContext())
+                .registerReceiver(receiver, new IntentFilter(AIService.ACTION_AI_REPLY));
     }
-
     @Override
     public void onStop() {
         super.onStop();
-        requireActivity().unregisterReceiver(receiver);
+        androidx.localbroadcastmanager.content.LocalBroadcastManager.getInstance(requireContext())
+                .unregisterReceiver(receiver);
     }
 }

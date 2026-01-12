@@ -19,7 +19,11 @@ import okhttp3.Response;
 
 public class AIService extends Service {
     public static final String ACTION_AI_REPLY = "com.example.AI_REPLY";
-    private final OkHttpClient client = new OkHttpClient();
+    private final OkHttpClient client = new OkHttpClient.Builder()
+            .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS) // 连接超时
+            .readTimeout(90, java.util.concurrent.TimeUnit.SECONDS)    // 读取超时
+            .writeTimeout(30, java.util.concurrent.TimeUnit.SECONDS)   // 写入超时
+            .build();
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -69,7 +73,7 @@ public class AIService extends Service {
     private void callZhipuAPI(String prompt) {
         String apiKey = "1e3840be35544ddeb94982b1706e2a04.eHUbxcshMkJijBSZ";
         String url = "https://open.bigmodel.cn/api/paas/v4/chat/completions";
-
+        android.util.Log.d("AI_DEBUG", "开始请求 Zhipu API");
         try {
             // 1. 构建请求 JSON
             JSONObject jsonBody = new JSONObject();
@@ -80,7 +84,7 @@ public class AIService extends Service {
             JSONObject systemMsg = new JSONObject();
             systemMsg.put("role", "system");
             systemMsg.put("content",
-                    "你是一个专业的高中教师和教育分析员，请根据提供的成绩数据，从考试学科、考试时间点、考试时间间隔、考试时间点学生正在学东西的重点知识等角度，全面分析学生上传的学科成绩，中肯精炼的给出分析结论，并以温和的语气提出学习建议。");
+                    "你是一个专业的高中教师和教育分析员，请根据提供的成绩数据，从考试学科、考试时间点、考试时间间隔、考试时间点学生正在学东西的重点知识等角度，全面分析学生上传的学科成绩，中肯精炼的给出分析结论，并以温和的语气提出学习建议。回答时不需要开场白，直接开始叙述内容。");
             messages.put(systemMsg);
 
             // 用户拼接好的数据提示词
@@ -91,6 +95,7 @@ public class AIService extends Service {
 
             jsonBody.put("messages", messages);
             jsonBody.put("stream", false); // 简单起见，关闭流式传输，直接获取完整结果
+            jsonBody.put("temperature", 1.0);
 
             // 2. 发送请求
             MediaType JSON = MediaType.get("application/json; charset=utf-8");
@@ -101,36 +106,40 @@ public class AIService extends Service {
                     .header("Authorization", "Bearer " + apiKey)
                     .post(body)
                     .build();
-
+            android.util.Log.d("AI_DEBUG", "即将执行网络请求");
             try (Response response = client.newCall(request).execute()) {
                 if (response.isSuccessful() && response.body() != null) {
                     String responseData = response.body().string();
+                    android.util.Log.d("AI_DEBUG", "Raw Response: " + responseData);
 
-                    // 3. 解析返回的 JSON 获取 AI 内容
+                    // 1. 精确解析 JSON 层级
                     JSONObject resJson = new JSONObject(responseData);
-                    String aiContent = resJson.getJSONArray("choices")
-                            .getJSONObject(0)
-                            .getJSONObject("message")
-                            .getString("content");
+                    JSONArray choices = resJson.getJSONArray("choices");
+                    JSONObject firstChoice = choices.getJSONObject(0);
+                    JSONObject message = firstChoice.getJSONObject("message");
+                    String aiContent = message.getString("content");
 
-                    // 4. 通过广播发送结果
-                    Intent intent = new Intent(ACTION_AI_REPLY);
-                    intent.putExtra("response", aiContent);
-                    sendBroadcast(intent);
+                    // 2. 使用 LocalBroadcastManager 发送结果
+                    sendResult(aiContent);
                 } else {
-                    sendErrorBroadcast("请求失败: " + response.code());
+                    sendResult("服务器响应错误: " + response.code());
                 }
+            } catch (Exception e) {
+                android.util.Log.e("AI_DEBUG", "解析或网络异常", e);
+                sendResult("处理失败: " + e.getMessage());
             }
         } catch (Exception e) {
-            e.printStackTrace();
-            sendErrorBroadcast("网络异常: " + e.getMessage());
+            android.util.Log.e("AI_DEBUG", "调用异常", e);
+            sendResult("网络异常: " + e.getMessage());
         }
     }
 
-    private void sendErrorBroadcast(String errorMsg) {
+    private void sendResult(String content) {
         Intent intent = new Intent(ACTION_AI_REPLY);
-        intent.putExtra("response", "AI 助手出错啦：" + errorMsg);
-        sendBroadcast(intent);
+        intent.putExtra("response", content);
+        // 使用 LocalBroadcastManager 发送
+        androidx.localbroadcastmanager.content.LocalBroadcastManager
+                .getInstance(this).sendBroadcast(intent);
     }
 
     @Override public IBinder onBind(Intent intent) { return null; }

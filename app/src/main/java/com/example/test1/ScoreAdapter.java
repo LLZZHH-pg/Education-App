@@ -13,10 +13,19 @@ public class ScoreAdapter extends RecyclerView.Adapter<ScoreAdapter.ViewHolder> 
 
     private Cursor cursor;
     private List<String> subjects;
+    private OnItemLongClickListener longClickListener;
 
     public ScoreAdapter(Cursor cursor, List<String> subjects) {
         this.cursor = cursor;
         this.subjects = subjects;
+    }
+
+    public interface OnItemLongClickListener {
+        void onItemLongClick(long id, String examName);
+    }
+
+    public void setOnItemLongClickListener(OnItemLongClickListener listener) {
+        this.longClickListener = listener;
     }
 
     public void swapCursor(Cursor newCursor) {
@@ -38,12 +47,15 @@ public class ScoreAdapter extends RecyclerView.Adapter<ScoreAdapter.ViewHolder> 
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         if (cursor != null && cursor.moveToPosition(position)) {
             // 1. 考试名
+            long id = cursor.getLong(cursor.getColumnIndexOrThrow("id"));
             String examName = cursor.getString(cursor.getColumnIndexOrThrow("exam_name"));
             holder.tvExamName.setText(examName);
 
             // 2. 时间 (只截取日期部分 yyyy-MM-dd，如果太长的话)
             String fullTime = cursor.getString(cursor.getColumnIndexOrThrow("upload_time"));
             holder.tvUploadTime.setText(fullTime.split(" ")[0]);
+
+            holder.tvExamName.setText(examName);
 
             // 3. 动态拼接学科成绩
             StringBuilder sb = new StringBuilder();
@@ -59,6 +71,13 @@ public class ScoreAdapter extends RecyclerView.Adapter<ScoreAdapter.ViewHolder> 
                 }
             }
             holder.tvSubjectsScores.setText(sb.toString().trim());
+
+            holder.itemView.setOnLongClickListener(v -> {
+                if (longClickListener != null) {
+                    longClickListener.onItemLongClick(id, examName);
+                }
+                return true; // 表示消费了长按事件
+            });
         }
     }
 

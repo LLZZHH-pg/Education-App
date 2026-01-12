@@ -56,13 +56,18 @@ public class ScoreDatabaseHelper extends SQLiteOpenHelper {
         return db.query(tableName, null, null, null, null, null, "id DESC");
     }
 
+    public void deleteScoreById(long id) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(tableName, "id = ?", new String[]{String.valueOf(id)});
+    }
+
     /**
      * 检查并添加缺失的学科列
      * @param newSubjects 用户最新修改的学科列表
      */
     public void addMissingColumns(List<String> newSubjects) {
         SQLiteDatabase db = this.getWritableDatabase();
-        // 1. 获取数据库中现有的所有列名
+        // 获取数据库中现有的所有列名
         android.database.Cursor cursor = db.rawQuery("PRAGMA table_info(" + tableName + ")", null);
         java.util.Set<String> existingColumns = new java.util.HashSet<>();
         if (cursor != null) {
@@ -73,7 +78,7 @@ public class ScoreDatabaseHelper extends SQLiteOpenHelper {
             cursor.close();
         }
 
-        // 2. 遍历新学科列表，如果列不存在则添加
+        // 遍历新学科列表，如果列不存在则添加
         for (String subject : newSubjects) {
             if (!existingColumns.contains(subject)) {
                 try {
