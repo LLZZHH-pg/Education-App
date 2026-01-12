@@ -44,5 +44,7 @@ dependencies {
     implementation libs.poi.ooxml
     // POI 有时需要这些辅助库来处理 Android 上的压缩格式
     implementation libs.jackson.databind
-    implementation(libs.mpandroidchart)
+    implementation libs.mpandroidchart
+    implementation libs.okhttp
+    implementation libs.gson
 }
