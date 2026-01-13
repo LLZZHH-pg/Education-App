@@ -1,5 +1,6 @@
 package com.example.test1;
 
+import android.annotation.SuppressLint;
 import android.app.Service;
 import android.content.Intent;
 import android.database.Cursor;
@@ -20,7 +21,7 @@ import okhttp3.Response;
 public class AIService extends Service {
     public static final String ACTION_AI_REPLY = "com.example.AI_REPLY";
     private final OkHttpClient client = new OkHttpClient.Builder()
-            .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS) // 连接超时
+            .connectTimeout(10, java.util.concurrent.TimeUnit.SECONDS) // 连接超时
             .readTimeout(90, java.util.concurrent.TimeUnit.SECONDS)    // 读取超时
             .writeTimeout(30, java.util.concurrent.TimeUnit.SECONDS)   // 写入超时
             .build();
@@ -31,7 +32,6 @@ public class AIService extends Service {
         String username = LoginManager.getUsername(this);
         List<String> allSubjects = LoginManager.getSubjectsList(this);
 
-        // 异步处理，防止阻塞主线程
         new Thread(() -> {
             String prompt = buildPrompt(username, subject, allSubjects);
             callZhipuAPI(prompt);
@@ -57,6 +57,7 @@ public class AIService extends Service {
         }
     }
 
+    @SuppressLint("DefaultLocale")
     private String getSubjectDataString(Cursor cursor, String subject) {
         List<String> list = new ArrayList<>();
         if (cursor.moveToFirst()) {
@@ -77,14 +78,14 @@ public class AIService extends Service {
         try {
             // 1. 构建请求 JSON
             JSONObject jsonBody = new JSONObject();
-            jsonBody.put("model", "glm-4.7"); // 或 glm-4-plus 等
+            jsonBody.put("model", "glm-4.7");
 
             JSONArray messages = new JSONArray();
             // 系统提示词
             JSONObject systemMsg = new JSONObject();
             systemMsg.put("role", "system");
             systemMsg.put("content",
-                    "你是一个专业的高中教师和教育分析员，请根据提供的成绩数据，从考试学科、考试时间点、考试时间间隔、考试时间点学生正在学东西的重点知识等角度，全面分析学生上传的学科成绩，中肯精炼的给出分析结论，并以温和的语气提出学习建议。回答时不需要开场白，直接开始叙述内容。");
+                    "你是一个专业的高中教师和教育分析员，请根据提供的成绩数据，从考试学科、考试时间点、考试时间间隔、考试时间点学生正在学东西的重点知识等角度，全面分析学生上传的学科成绩，中肯精炼的给出分析结论，并以温和的语气提出学习建议。给出分析结果和学习建议时都不需要开场白，直接叙述内容。分数为0的考试记录定义为没有录入数据，直接忽略。");
             messages.put(systemMsg);
 
             // 用户拼接好的数据提示词
@@ -94,7 +95,7 @@ public class AIService extends Service {
             messages.put(userMsg);
 
             jsonBody.put("messages", messages);
-            jsonBody.put("stream", false); // 简单起见，关闭流式传输，直接获取完整结果
+            jsonBody.put("stream", true);
             jsonBody.put("temperature", 1.0);
 
             // 2. 发送请求
@@ -107,24 +108,72 @@ public class AIService extends Service {
                     .post(body)
                     .build();
             android.util.Log.d("AI_DEBUG", "即将执行网络请求");
+//            try (Response response = client.newCall(request).execute()) {
+//                if (response.isSuccessful() && response.body() != null) {
+//                    String responseData = response.body().string();
+//                    android.util.Log.d("AI_DEBUG", "Raw Response: " + responseData);
+//
+//                    JSONObject resJson = new JSONObject(responseData);
+//                    JSONArray choices = resJson.getJSONArray("choices");
+//                    JSONObject firstChoice = choices.getJSONObject(0);
+//                    JSONObject message = firstChoice.getJSONObject("message");
+//                    String aiContent = message.getString("content");
+//
+//                    sendResult(aiContent);
+//                } else {
+//                    sendResult("服务器响应错误: " + response.code());
+//                }
+//            }
             try (Response response = client.newCall(request).execute()) {
-                if (response.isSuccessful() && response.body() != null) {
-                    String responseData = response.body().string();
-                    android.util.Log.d("AI_DEBUG", "Raw Response: " + responseData);
-
-                    // 1. 精确解析 JSON 层级
-                    JSONObject resJson = new JSONObject(responseData);
-                    JSONArray choices = resJson.getJSONArray("choices");
-                    JSONObject firstChoice = choices.getJSONObject(0);
-                    JSONObject message = firstChoice.getJSONObject("message");
-                    String aiContent = message.getString("content");
-
-                    // 2. 使用 LocalBroadcastManager 发送结果
-                    sendResult(aiContent);
-                } else {
+                if (!response.isSuccessful() || response.body() == null) {
                     sendResult("服务器响应错误: " + response.code());
+                    return;
                 }
-            } catch (Exception e) {
+
+                // SSE: data: {...}\n\n ，最后可能会有 data: [DONE]
+                java.io.BufferedReader reader = new java.io.BufferedReader(
+                        new java.io.InputStreamReader(response.body().byteStream(), java.nio.charset.StandardCharsets.UTF_8)
+                );
+
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (line.isEmpty()) continue;
+                    if (!line.startsWith("data:")) continue;
+
+                    String data = line.substring(5).trim();
+                    if ("[DONE]".equals(data)) {
+                        break;
+                    }
+
+                    try {
+                        JSONObject chunk = new JSONObject(data);
+                        JSONArray choices = chunk.optJSONArray("choices");
+                        if (choices == null || choices.length() == 0) continue;
+
+                        JSONObject first = choices.getJSONObject(0);
+
+                        // 兼容常见流式字段: delta / message
+                        String deltaText = "";
+                        if (first.has("delta")) {
+                            JSONObject delta = first.getJSONObject("delta");
+                            deltaText = delta.optString("content", "");
+                        } else if (first.has("message")) {
+                            JSONObject msg = first.getJSONObject("message");
+                            deltaText = msg.optString("content", "");
+                        }
+
+                        if (deltaText != null && !deltaText.isEmpty()) {
+                            // 增量推送，不结束
+                            sendResult(deltaText);
+                        }
+                    } catch (Exception parseEx) {
+                        android.util.Log.e("AI_DEBUG", "流式分片解析失败: " + data, parseEx);
+                    }
+                }
+
+
+            }
+            catch (Exception e) {
                 android.util.Log.e("AI_DEBUG", "解析或网络异常", e);
                 sendResult("处理失败: " + e.getMessage());
             }
@@ -137,7 +186,7 @@ public class AIService extends Service {
     private void sendResult(String content) {
         Intent intent = new Intent(ACTION_AI_REPLY);
         intent.putExtra("response", content);
-        // 使用 LocalBroadcastManager 发送
+
         androidx.localbroadcastmanager.content.LocalBroadcastManager
                 .getInstance(this).sendBroadcast(intent);
     }

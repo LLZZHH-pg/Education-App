@@ -4,7 +4,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
 
-    android:background="#FFFFFF"
     android:gravity="center"
     android:orientation="vertical"
     android:padding="24dp">
@@ -43,7 +42,6 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="40dp"
         android:text="用户登录"
-        android:textColor="#333333"
         android:textSize="28sp"
         android:textStyle="bold" />
 
@@ -52,34 +50,48 @@
         android:layout_height="wrap_content">
 
         <!-- 用户名输入 -->
-        <EditText
-            android:id="@+id/usernameEditText"
+        <com.google.android.material.textfield.TextInputLayout
             android:layout_width="0dp"
-            android:layout_height="60dp"
-            android:background="@android:drawable/editbox_background_normal"
-            android:hint="账户"
-            android:inputType="text"
-            android:maxLines="1"
-            android:padding="16dp"
-            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/usernameEditTextLayout"
+            app:boxBackgroundMode="outline"
+            app:boxStrokeWidth="1dp"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/usernameEditText"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:hint="账户"
+                android:inputType="text"
+                android:maxLines="1"
+                android:padding="16dp" />
+        </com.google.android.material.textfield.TextInputLayout>
 
 
         <!-- 密码输入 -->
-        <EditText
-            android:id="@+id/passwordEditText"
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/passwordEditTextLayout"
             android:layout_width="0dp"
-            android:layout_height="60dp"
+            android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:background="@android:drawable/editbox_background_normal"
-            android:hint="密码"
-            android:inputType="textPassword"
-            android:maxLines="1"
-            android:padding="16dp"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:boxBackgroundMode="outline"
+            app:boxStrokeWidth="1dp"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/usernameEditText" />
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/usernameEditTextLayout">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/passwordEditText"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:hint="密码"
+                android:inputType="text"
+                android:maxLines="1"
+                android:padding="16dp" />
+        </com.google.android.material.textfield.TextInputLayout>
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>
@@ -104,7 +116,6 @@
             android:clickable="true"
             android:linksClickable="true"
             android:text="同意用户协议"
-            android:textColor="#666666"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toEndOf="@id/agreeCheckBox"
             app:layout_constraintTop_toTopOf="parent" />
@@ -114,6 +125,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:backgroundTint="#8E0101"
+            android:textColor="#FFFFFF"
             android:text="清空"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"

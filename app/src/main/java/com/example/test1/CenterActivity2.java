@@ -25,8 +25,13 @@ public class CenterActivity2 extends Fragment {
     private BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            String result = intent.getStringExtra("response");
-            tvResponse.setText(result); // 收到广播，刷新界面
+            String delta = intent.getStringExtra("response");
+
+
+            if (delta != null && !delta.isEmpty()) {
+                // 追加流式内容
+                tvResponse.append(delta);
+            }
         }
     };
 
