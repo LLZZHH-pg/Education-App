@@ -12,6 +12,7 @@ import java.util.List;
 
 public class LoginManager {
     private static final String PREFS_NAME = "LoginPrefs";
+    private static final String AI_PREF_NAME = "ai_cache";
     private static final String KEY_LAST_ACTIVITY = "last_activity";
     private static final String KEY_IS_LOGGED_IN = "is_logged_in";
     private static final String KEY_USERNAME = "username";
@@ -155,13 +156,14 @@ public class LoginManager {
     }
 
     /**
-     * 退出登录，清除登录状态和用户名
+     * 退出登录
      */
     public static void logout(Context context) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        prefs.edit()
-                .putBoolean(KEY_IS_LOGGED_IN, false)
-                .putString(KEY_USERNAME, "")
+        prefs.edit().clear().apply();
+        context.getSharedPreferences(AI_PREF_NAME, Context.MODE_PRIVATE)
+                .edit()
+                .clear()
                 .apply();
     }
 }

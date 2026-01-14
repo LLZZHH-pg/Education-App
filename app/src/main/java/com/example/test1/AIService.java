@@ -21,8 +21,8 @@ import okhttp3.Response;
 public class AIService extends Service {
     public static final String ACTION_AI_REPLY = "com.example.AI_REPLY";
     private final OkHttpClient client = new OkHttpClient.Builder()
-            .connectTimeout(10, java.util.concurrent.TimeUnit.SECONDS) // 连接超时
-            .readTimeout(90, java.util.concurrent.TimeUnit.SECONDS)    // 读取超时
+            .connectTimeout(5, java.util.concurrent.TimeUnit.SECONDS) // 连接超时
+            .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)    // 读取超时
             .writeTimeout(30, java.util.concurrent.TimeUnit.SECONDS)   // 写入超时
             .build();
 
@@ -108,22 +108,7 @@ public class AIService extends Service {
                     .post(body)
                     .build();
             android.util.Log.d("AI_DEBUG", "即将执行网络请求");
-//            try (Response response = client.newCall(request).execute()) {
-//                if (response.isSuccessful() && response.body() != null) {
-//                    String responseData = response.body().string();
-//                    android.util.Log.d("AI_DEBUG", "Raw Response: " + responseData);
-//
-//                    JSONObject resJson = new JSONObject(responseData);
-//                    JSONArray choices = resJson.getJSONArray("choices");
-//                    JSONObject firstChoice = choices.getJSONObject(0);
-//                    JSONObject message = firstChoice.getJSONObject("message");
-//                    String aiContent = message.getString("content");
-//
-//                    sendResult(aiContent);
-//                } else {
-//                    sendResult("服务器响应错误: " + response.code());
-//                }
-//            }
+
             try (Response response = client.newCall(request).execute()) {
                 if (!response.isSuccessful() || response.body() == null) {
                     sendResult("服务器响应错误: " + response.code());

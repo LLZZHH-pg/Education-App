@@ -21,8 +21,6 @@ import java.util.List;
 
 public class MainActivity extends BaseActivity implements SideFragment.OnSidebarItemClickListener{
 
-    private static final String PREFS_NAME = "app_settings";
-    private static final String KEY_DARK_MODE = "dark_mode";
     private boolean isSidebarOpen = false;
     private Button menuButton;
     private int currentNavId = R.id.nav_page1;
@@ -155,7 +153,6 @@ public class MainActivity extends BaseActivity implements SideFragment.OnSidebar
         SideFragment sidebarFragment = new SideFragment();
         sidebarFragment.setOnSidebarItemClickListener(this);
 
-        // 传递用户名给SideFragment
         Bundle args = new Bundle();
         String username = LoginManager.getUsername(this);
         args.putString("username", username);
@@ -163,7 +160,7 @@ public class MainActivity extends BaseActivity implements SideFragment.OnSidebar
 
         getSupportFragmentManager().beginTransaction()
                 .setCustomAnimations(
-                        android.R.anim.fade_in,  // 使用系统自带的动画
+                        android.R.anim.fade_in,
                         android.R.anim.fade_out,
                         android.R.anim.fade_in,
                         android.R.anim.fade_out
@@ -171,10 +168,9 @@ public class MainActivity extends BaseActivity implements SideFragment.OnSidebar
                 .replace(R.id.side_container, sidebarFragment)
                 .commit();
         if (drawer != null) {
-            drawer.openDrawer(GravityCompat.END); // 打开抽屉
+            drawer.openDrawer(GravityCompat.END);
         }
         isSidebarOpen = true;
-        // 禁用主内容区域的交互
         setMainContentInteraction(false);
     }
 
@@ -196,10 +192,9 @@ public class MainActivity extends BaseActivity implements SideFragment.OnSidebar
                     .commit();
         }
         if (drawer != null && drawer.isDrawerOpen(GravityCompat.END)) {
-            drawer.closeDrawer(GravityCompat.END); // 关闭抽屉
+            drawer.closeDrawer(GravityCompat.END);
         }
         isSidebarOpen = false;
-        // 启用主内容区域的交互
         setMainContentInteraction(true);
     }
     /**
@@ -213,7 +208,6 @@ public class MainActivity extends BaseActivity implements SideFragment.OnSidebar
         }
     }
 
-    // 侧边栏菜单项点击回调
     @Override
     public void onEditSubjectsClicked() {
         closeSidebar();
@@ -276,7 +270,7 @@ public class MainActivity extends BaseActivity implements SideFragment.OnSidebar
 
     private void showAboutDialog() {
         String appName = getApplicationInfo().loadLabel(getPackageManager()).toString();
-        String version = "V00";
+        String version = "V1.0";
         try {
             version = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
         } catch (PackageManager.NameNotFoundException e) {

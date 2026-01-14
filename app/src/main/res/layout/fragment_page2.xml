@@ -21,6 +21,7 @@
             android:id="@+id/btn_ai_assist"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:textColor="#FFFFFF"
             android:text="AI辅助" />
     </LinearLayout>
 

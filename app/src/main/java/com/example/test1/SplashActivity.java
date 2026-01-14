@@ -5,16 +5,27 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.splashscreen.SplashScreen;
 
 @SuppressLint("CustomSplashScreen")
 public class SplashActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        SplashScreen splashScreen =SplashScreen.installSplashScreen(this);
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_splash);  // 使用新的布局
+
+        splashScreen.setOnExitAnimationListener(provider -> {
+            android.view.View splashView = provider.getView();
+            splashView.animate()
+                    .alpha(0f)
+                    .setDuration(400L)
+                    .withEndAction(provider::remove)
+                    .start();
+        });
+
         new Handler().postDelayed(() -> {
             startActivity(new Intent(this, MainActivity.class));
             finish();
-        }, 1000);
+        }, 200);
     }
 }

@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import com.github.mikephil.charting.charts.LineChart;
@@ -79,9 +80,12 @@ public class CenterActivity1 extends Fragment {
     }
 
     private void addChartToLayout(String subjectName, List<Entry> entries, List<String> examNames) {
+        int textColor = getDynamicColor();
+        int themeColor = ContextCompat.getColor(requireContext(), R.color.my_light_primary);
         // 标题
         TextView title = new TextView(getContext());
         title.setText(subjectName + " 成绩走势");
+        title.setTextColor(textColor);
         title.setTextSize(18f);
         title.setPadding(0, 40, 0, 10);
         chartContainer.addView(title);
@@ -93,18 +97,20 @@ public class CenterActivity1 extends Fragment {
 
         // 数据集设置
         LineDataSet dataSet = new LineDataSet(entries, subjectName);
-        dataSet.setColor(Color.BLUE);
+        dataSet.setColor(themeColor);
         dataSet.setCircleColor(Color.RED);
         dataSet.setLineWidth(2f);
         dataSet.setCircleRadius(4f);
-        dataSet.setDrawValues(true); // 显示具体分数文本
-        dataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER); // 使线条圆滑
+        dataSet.setValueTextColor(textColor);
+        dataSet.setDrawValues(true);
+        dataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER);
 
         LineData lineData = new LineData(dataSet);
         chart.setData(lineData);
 
         // X 轴配置
         XAxis xAxis = chart.getXAxis();
+        xAxis.setTextColor(textColor);
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
         xAxis.setGranularity(1f);
         xAxis.setValueFormatter(new ValueFormatter() {
@@ -116,15 +122,27 @@ public class CenterActivity1 extends Fragment {
                 }
                 return "";
             }
-        }); // 设置考试名为标签
-        xAxis.setLabelRotationAngle(-45); // 考试名太长时旋转角度
+        });
+        xAxis.setLabelRotationAngle(-45);
+
+        chart.getAxisLeft().setTextColor(textColor);
+        chart.getLegend().setTextColor(textColor);
 
         // 通用美化
+        chart.getLegend().setEnabled(false);
         chart.getDescription().setEnabled(false); // 隐藏右下角描述
         chart.getAxisRight().setEnabled(false); // 隐藏右侧坐标轴
-        chart.animateX(1000); // 载入动画
+        chart.animateX(700); // 载入动画
         chart.invalidate(); // 刷新
 
         chartContainer.addView(chart);
+    }
+    private int getDynamicColor() {
+        int nightModeFlags = getContext().getResources().getConfiguration().uiMode &
+                android.content.res.Configuration.UI_MODE_NIGHT_MASK;
+        if (nightModeFlags == android.content.res.Configuration.UI_MODE_NIGHT_YES) {
+            return Color.WHITE; // 暗色模式下文字显示白色
+        }
+        return Color.BLACK; // 亮色模式下文字显示黑色
     }
 }
