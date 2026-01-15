@@ -41,12 +41,11 @@ public class CenterActivity2 extends Fragment {
 
             prefs.edit().putBoolean(KEY_IS_REQUESTING, false).apply();
 
-            // 1) 先把分片追加到缓存（保证后台也能持续累计）
+            // 把分片追加到缓存（保证后台也能持续累计）
             String old = prefs.getString(KEY_AI_TEXT, "");
             String merged = (old == null ? "" : old) + delta;
             prefs.edit().putString(KEY_AI_TEXT, merged).apply();
 
-            // 2) 如果 UI 还在，就更新 UI；否则等下次 onCreateView/onViewCreated 恢复
             if (tvResponse == null) return;
 
             // 仅当本次是用户新请求的首包，才把占位提示替换掉
@@ -77,7 +76,6 @@ public class CenterActivity2 extends Fragment {
         tvResponse = v.findViewById(R.id.tv_ai_response);
         Button btn = v.findViewById(R.id.btn_ai_assist);
 
-        // 加载下拉菜单数据
         List<String> subjects = new ArrayList<>();
         subjects.add("全部");
         subjects.addAll(LoginManager.getSubjectsList(requireContext()));

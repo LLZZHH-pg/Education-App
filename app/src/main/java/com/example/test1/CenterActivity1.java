@@ -31,12 +31,10 @@ public class CenterActivity1 extends Fragment {
         View view = inflater.inflate(R.layout.fragment_page1, container, false);
         chartContainer = view.findViewById(R.id.chart_container);
 
-        // 1. 初始化数据库
         String username = LoginManager.getUsername(requireContext());
         List<String> subjects = LoginManager.getSubjectsList(requireContext());
         dbHelper = new ScoreDatabaseHelper(requireContext(), username, subjects);
 
-        // 2. 绘制图表
         setupCharts(subjects);
 
         return view;
@@ -45,8 +43,6 @@ public class CenterActivity1 extends Fragment {
     private void setupCharts(List<String> subjects) {
         chartContainer.removeAllViews();
 
-        // 关键：从数据库获取数据。由于默认从上到下是旧到新，
-        // 我们需要按 ID 升序读取，以保证 X 轴从左到右是时间正序。
         Cursor cursor = dbHelper.getWritableDatabase().query(
                 "score_table", null, null, null, null, null, "id ASC");
 
@@ -57,13 +53,11 @@ public class CenterActivity1 extends Fragment {
             return;
         }
 
-        // 提取考试名称（X轴标签）
         List<String> examNames = new ArrayList<>();
         while (cursor.moveToNext()) {
             examNames.add(cursor.getString(cursor.getColumnIndexOrThrow("exam_name")));
         }
 
-        // 为每个学科画一张图
         for (String subject : subjects) {
             List<Entry> entries = new ArrayList<>();
             cursor.moveToFirst();
@@ -73,7 +67,6 @@ public class CenterActivity1 extends Fragment {
                 entries.add(new Entry(index++, score));
             } while (cursor.moveToNext());
 
-            // 创建并配置图表
             addChartToLayout(subject, entries, examNames);
         }
         cursor.close();
@@ -90,12 +83,10 @@ public class CenterActivity1 extends Fragment {
         title.setPadding(0, 40, 0, 10);
         chartContainer.addView(title);
 
-        // 图表对象
         LineChart chart = new LineChart(getContext());
         chart.setLayoutParams(new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, 600)); // 高度 600px
 
-        // 数据集设置
         LineDataSet dataSet = new LineDataSet(entries, subjectName);
         dataSet.setColor(themeColor);
         dataSet.setCircleColor(Color.RED);
@@ -108,7 +99,6 @@ public class CenterActivity1 extends Fragment {
         LineData lineData = new LineData(dataSet);
         chart.setData(lineData);
 
-        // X 轴配置
         XAxis xAxis = chart.getXAxis();
         xAxis.setTextColor(textColor);
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
@@ -128,11 +118,10 @@ public class CenterActivity1 extends Fragment {
         chart.getAxisLeft().setTextColor(textColor);
         chart.getLegend().setTextColor(textColor);
 
-        // 通用美化
         chart.getLegend().setEnabled(false);
-        chart.getDescription().setEnabled(false); // 隐藏右下角描述
-        chart.getAxisRight().setEnabled(false); // 隐藏右侧坐标轴
-        chart.animateX(700); // 载入动画
+        chart.getDescription().setEnabled(false);
+        chart.getAxisRight().setEnabled(false);
+        chart.animateX(700);
         chart.invalidate(); // 刷新
 
         chartContainer.addView(chart);
@@ -141,8 +130,8 @@ public class CenterActivity1 extends Fragment {
         int nightModeFlags = getContext().getResources().getConfiguration().uiMode &
                 android.content.res.Configuration.UI_MODE_NIGHT_MASK;
         if (nightModeFlags == android.content.res.Configuration.UI_MODE_NIGHT_YES) {
-            return Color.WHITE; // 暗色模式下文字显示白色
+            return Color.WHITE;
         }
-        return Color.BLACK; // 亮色模式下文字显示黑色
+        return Color.BLACK;
     }
 }

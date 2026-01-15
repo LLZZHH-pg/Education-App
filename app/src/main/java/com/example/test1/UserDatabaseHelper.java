@@ -43,19 +43,17 @@ public class UserDatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    // 插入新用户
     public boolean registerUser(String username, String password, String birthday, String subjects) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put("username", username);
         values.put("password", hashPassword(password));
         values.put("birthday", birthday);
-        values.put("subjects", subjects); // 存入处理后的空格分隔字符串
+        values.put("subjects", subjects);
         long result = db.insert(TABLE_USERS, null, values);
         return result != -1;
     }
 
-    // 检查用户是否存在
     public boolean checkUserExists(String username) {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.query(TABLE_USERS, null, "username=?", new String[]{username}, null, null, null);
@@ -64,7 +62,6 @@ public class UserDatabaseHelper extends SQLiteOpenHelper {
         return exists;
     }
 
-    // 验证登录
     public boolean validateLogin(String username, String password) {
         SQLiteDatabase db = this.getReadableDatabase();
         String hashedPassword = hashPassword(password);
@@ -74,7 +71,6 @@ public class UserDatabaseHelper extends SQLiteOpenHelper {
         return valid;
     }
 
-    // 根据用户名获取学科
     public String getUserSubjects(String username) {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.query(TABLE_USERS, new String[]{"subjects"}, "username=?", new String[]{username}, null, null, null);

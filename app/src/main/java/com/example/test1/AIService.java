@@ -115,7 +115,6 @@ public class AIService extends Service {
                     return;
                 }
 
-                // SSE: data: {...}\n\n ，最后可能会有 data: [DONE]
                 java.io.BufferedReader reader = new java.io.BufferedReader(
                         new java.io.InputStreamReader(response.body().byteStream(), java.nio.charset.StandardCharsets.UTF_8)
                 );
@@ -137,7 +136,6 @@ public class AIService extends Service {
 
                         JSONObject first = choices.getJSONObject(0);
 
-                        // 兼容常见流式字段: delta / message
                         String deltaText = "";
                         if (first.has("delta")) {
                             JSONObject delta = first.getJSONObject("delta");
@@ -148,7 +146,6 @@ public class AIService extends Service {
                         }
 
                         if (deltaText != null && !deltaText.isEmpty()) {
-                            // 增量推送，不结束
                             sendResult(deltaText);
                         }
                     } catch (Exception parseEx) {

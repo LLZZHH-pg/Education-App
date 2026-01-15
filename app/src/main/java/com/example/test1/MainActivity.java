@@ -1,7 +1,5 @@
-// java
 package com.example.test1;
 
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.View;
@@ -10,7 +8,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
@@ -41,7 +38,6 @@ public class MainActivity extends BaseActivity implements SideFragment.OnSidebar
             return true;
         });
 
-        // 初始加载第一个页面
         refreshFragment();
 
         findViewById(R.id.fragment_container).setOnClickListener(v -> {
@@ -51,12 +47,7 @@ public class MainActivity extends BaseActivity implements SideFragment.OnSidebar
         });
     }
 
-    /**
-     * 核心逻辑：刷新 Fragment。
-     * 1. 检查登录状态。
-     * 2. 未登录则显示 EmptyActivity。
-     * 3. 已登录则显示对应的 CenterFragment，并尝试初始化该用户的成绩数据库。
-     */
+
     private void refreshFragment() {
         boolean loggedIn = LoginManager.isLoggedIn(this);
         Fragment targetFragment;
@@ -68,7 +59,6 @@ public class MainActivity extends BaseActivity implements SideFragment.OnSidebar
             // 已登录：触发成绩数据库初始化
             checkAndInitUserDatabase();
 
-            // 根据底部导航 ID 分发对应的真实 Fragment
             if (currentNavId == R.id.nav_page1) {
                 targetFragment = new CenterActivity1();
             } else if (currentNavId == R.id.nav_page2) {
@@ -76,11 +66,10 @@ public class MainActivity extends BaseActivity implements SideFragment.OnSidebar
             } else if (currentNavId == R.id.nav_page3){
                 targetFragment = new CenterActivity3();
             }else {
-                targetFragment = new CenterActivity1(); // 默认回退
+                targetFragment = new CenterActivity1();
             }
         }
 
-        // 执行 Fragment 替换，解决 Activity 渲染冲突
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.fragment_container, targetFragment)
                 .commitAllowingStateLoss();
@@ -110,12 +99,8 @@ public class MainActivity extends BaseActivity implements SideFragment.OnSidebar
         }
     }
 
-    /**
-     * 成绩数据库触发器
-     */
     private void checkAndInitUserDatabase() {
         String username = LoginManager.getUsername(this);
-        // 获取学科列表 (假定 LoginManager 已实现返回 List<String> 的方法)
         List<String> subjects = LoginManager.getSubjectsList(this);
 
         if (!username.isEmpty() && subjects != null && !subjects.isEmpty()) {
@@ -145,9 +130,6 @@ public class MainActivity extends BaseActivity implements SideFragment.OnSidebar
         }
     }
 
-    /**
-     * 打开侧边栏
-     */
     private void openSidebar() {
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         SideFragment sidebarFragment = new SideFragment();
@@ -174,9 +156,6 @@ public class MainActivity extends BaseActivity implements SideFragment.OnSidebar
         setMainContentInteraction(false);
     }
 
-    /**
-     * 关闭侧边栏
-     */
     private void closeSidebar() {
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         SideFragment fragment = (SideFragment) getSupportFragmentManager()
@@ -197,9 +176,7 @@ public class MainActivity extends BaseActivity implements SideFragment.OnSidebar
         isSidebarOpen = false;
         setMainContentInteraction(true);
     }
-    /**
-     * 设置主内容区域的交互状态
-     */
+
     private void setMainContentInteraction(boolean enabled) {
         View mainContent = findViewById(R.id.fragment_container);
         if (mainContent != null) {
@@ -212,18 +189,15 @@ public class MainActivity extends BaseActivity implements SideFragment.OnSidebar
     public void onEditSubjectsClicked() {
         closeSidebar();
 
-        // 1. 获取当前用户名
         String username = LoginManager.getUsername(this);
         if (username.equals("未登录")) {
             Toast.makeText(this, "请先登录", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // 2. 从数据库读取当前学科字符串
         UserDatabaseHelper dbHelper = new UserDatabaseHelper(this);
         String currentSubjects = dbHelper.getUserSubjects(username);
 
-        // 3. 弹出对话框
         android.widget.EditText editText = new android.widget.EditText(this);
         editText.setText(currentSubjects);
         editText.setHint("新学科(请用空格分隔)");
@@ -243,7 +217,6 @@ public class MainActivity extends BaseActivity implements SideFragment.OnSidebar
                         LoginManager.setSubjects(this, username);
                         Toast.makeText(this, "学科更新成功", Toast.LENGTH_SHORT).show();
 
-                        // 如果需要立即刷新 Page3 的界面，可以发送一个广播或通过 FragmentManager 通知
                     } else {
                         Toast.makeText(this, "更新失败", Toast.LENGTH_SHORT).show();
                     }

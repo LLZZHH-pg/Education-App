@@ -43,13 +43,11 @@
                         startActivity(intent);
                     });
 
-                    // 同意协议
                     String linkText = "同意<font color='#2196F3'><u><a href='https://cn.bing.com/'>用户协议</a></u></font>";
                     agreeText.setText(Html.fromHtml(linkText, Html.FROM_HTML_MODE_LEGACY));
                     agreeText.setMovementMethod(LinkMovementMethod.getInstance());
                     agreeText.setOnClickListener(v -> agreeCheckBox.setChecked(!agreeCheckBox.isChecked()));
 
-                    // 生日选择：禁止键盘，点击弹出日期选择
                     dateEditText.setInputType(InputType.TYPE_NULL);
                     dateEditText.setFocusable(false);
                     dateEditText.setOnClickListener(v -> {
@@ -91,7 +89,7 @@
                                 boolean success = dbHelper.registerUser(username, password, date,formattedSubjects);
                                 if (success) {
                                     Toast.makeText(this, "注册成功！请登录", Toast.LENGTH_SHORT).show();
-                                    finish(); // 返回登录页
+                                    finish();
                                 } else {
                                     Toast.makeText(this, "注册失败，请重试", Toast.LENGTH_SHORT).show();
                                 }

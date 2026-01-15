@@ -11,8 +11,6 @@ public class ScoreDatabaseHelper extends SQLiteOpenHelper {
     private String tableName;
     private List<String> subjects;
 
-    // 数据库名建议以用户名为区分，或者用统一数据库不同表名
-    // 这里采用：一个用户一个数据库，库名为 scores_{username}.db
     public ScoreDatabaseHelper(Context context, String username, List<String> subjects) {
         super(context, "scores_" + username + ".db", null, DB_VERSION);
         this.tableName = "score_table";
@@ -27,7 +25,6 @@ public class ScoreDatabaseHelper extends SQLiteOpenHelper {
         sql.append("upload_time TEXT, ");
         sql.append("exam_name TEXT, "); // 考试名（文件名）
 
-        // 动态添加学科列
         for (int i = 0; i < subjects.size(); i++) {
             sql.append("\"").append(subjects.get(i)).append("\" REAL");
             if (i < subjects.size() - 1) {
@@ -49,10 +46,8 @@ public class ScoreDatabaseHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    // 查询所有数据，按新到旧排序
     public Cursor getAllScores() {
         SQLiteDatabase db = this.getReadableDatabase();
-        // 根据 id 降序排列，即为最后插入的在最前面
         return db.query(tableName, null, null, null, null, null, "id DESC");
     }
 
@@ -61,10 +56,7 @@ public class ScoreDatabaseHelper extends SQLiteOpenHelper {
         db.delete(tableName, "id = ?", new String[]{String.valueOf(id)});
     }
 
-    /**
-     * 检查并添加缺失的学科列
-     * @param newSubjects 用户最新修改的学科列表
-     */
+
     public void addMissingColumns(List<String> newSubjects) {
         SQLiteDatabase db = this.getWritableDatabase();
         // 获取数据库中现有的所有列名
@@ -78,11 +70,9 @@ public class ScoreDatabaseHelper extends SQLiteOpenHelper {
             cursor.close();
         }
 
-        // 遍历新学科列表，如果列不存在则添加
         for (String subject : newSubjects) {
             if (!existingColumns.contains(subject)) {
                 try {
-                    // 执行增加列的 SQL：ALTER TABLE score_table ADD COLUMN "新学科" REAL
                     db.execSQL("ALTER TABLE " + tableName + " ADD COLUMN \"" + subject + "\" REAL");
                 } catch (Exception e) {
                     e.printStackTrace(); // 防止学科名包含非法字符导致崩溃

@@ -92,7 +92,6 @@ public class LoginActivity extends AppCompatActivity {
         );
         checkNotificationPermission();
 
-        // 初始化View
         touchImage = findViewById(R.id.touchImage);
         touchImage2 = findViewById(R.id.touchImage2);
         imageContainer = findViewById(R.id.imageContainer);
@@ -121,7 +120,6 @@ public class LoginActivity extends AppCompatActivity {
             return true;
         });
 
-        // 计算缩放比例和初始化小图片位置（在布局完成后设置）
         imageContainer.post(this::initializeSmallImagePosition);
 
         Button registerButton = findViewById(R.id.registerButton);
@@ -132,7 +130,6 @@ public class LoginActivity extends AppCompatActivity {
 
         TextView agreeText = findViewById(R.id.agreeText);
         CheckBox agreeCheckBox = findViewById(R.id.agreeCheckBox);
-        // 设置带链接的文本
         String linkText = "同意<font color='#2196F3'><u><a href='https://cn.bing.com/'>用户协议</a></u></font>";
         agreeText.setText(Html.fromHtml(linkText, Html.FROM_HTML_MODE_LEGACY));
         agreeText.setMovementMethod(LinkMovementMethod.getInstance());
@@ -141,12 +138,10 @@ public class LoginActivity extends AppCompatActivity {
             agreeCheckBox.setChecked(isChecked);
         });
         agreeCheckBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            // 这里可以处理选中状态变化的逻辑
         });
 
         Button loginButton = findViewById(R.id.loginButton);
 
-        // 创建通知渠道
         createNotificationChannel();
 
         loginButton.setOnClickListener(v -> {
@@ -154,25 +149,20 @@ public class LoginActivity extends AppCompatActivity {
             String password = passwordEditText.getText().toString().trim();
 
             if (!agreeCheckBox.isChecked()) {
-                // 弹出对话框提醒用户
                 new androidx.appcompat.app.AlertDialog.Builder(LoginActivity.this)
                         .setTitle("提示")
                         .setMessage("请先同意用户协议")
                         .setPositiveButton("同意", (dialog, which) -> {
-                            // 用户选择同意，勾选 CheckBox
                             agreeCheckBox.setChecked(true);
                         })
                         .setNegativeButton("取消", (dialog, which) -> {
-                            // 用户选择取消，关闭对话框
                             dialog.dismiss();
                         })
                         .show();
             } else if (username.isEmpty() || password.isEmpty()) {
                 Toast.makeText(LoginActivity.this, "请输入用户名和密码", Toast.LENGTH_SHORT).show();
             } else {
-                // 先检查账号是否存在
                 if (!LoginManager.userExists(this, username)) {
-                    // 账号不存在：给出“注册”和“取消”
                     new androidx.appcompat.app.AlertDialog.Builder(LoginActivity.this)
                             .setTitle("账号不存在")
                             .setMessage("未找到该账号，是否前往注册？")
@@ -185,10 +175,8 @@ public class LoginActivity extends AppCompatActivity {
                     return;
                 }
 
-                // 再检查账号密码是否匹配
                 boolean valid = LoginManager.validateUser(this,username, password);
                 if (!valid) {
-                    // 密码错误：弹出“好的”对话框
                     new androidx.appcompat.app.AlertDialog.Builder(LoginActivity.this)
                             .setTitle("登录失败")
                             .setMessage("用户名或密码错误")
@@ -215,7 +203,6 @@ public class LoginActivity extends AppCompatActivity {
         getOnBackPressedDispatcher().addCallback(this, new androidx.activity.OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
-                // 按返回键或手势时的自定义行为
                 LoginManager.returnToPreviousActivity(LoginActivity.this);
             }
         });

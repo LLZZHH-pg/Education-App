@@ -28,7 +28,6 @@ public class SideFragment extends Fragment{
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_side, container, false);
 
-        // 设置用户名显示
         TextView usernameText = view.findViewById(R.id.username);
         String usernameInside = "未登录";
         if (getArguments() != null) {
